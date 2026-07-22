@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: baradis_user
+      POSTGRES_PASSWORD: baradis_password
+      POSTGRES_DB: wakalat_baradis
+    ports:
+      - "5432:5432"
+    volumes:
+      - baradis_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baradis_user -d wakalat_baradis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://baradis_user:baradis_password@db:5432/wakalat_baradis
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret
+      SIGNED_URL_SECRET: change_this_signed_url_secret
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage/private:/app/storage/private
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m scripts.seed_initial_data &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  baradis_pg_data:

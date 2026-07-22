@@ -52,7 +52,7 @@ alembic/       ترحيلات قاعدة البيانات (migrations)
    رسالة عربية واضحة للواجهة، بينما تُسجَّل التفاصيل التقنية الدقيقة في
    اللوجز الخلفية فقط (`app/core/exceptions.py` + `app/main.py`).
 
-## التشغيل محلياً
+## التشغيل محلياً (Python مباشرة)
 
 ```bash
 python -m venv .venv
@@ -62,10 +62,36 @@ pip install -r requirements.txt
 cp .env.example .env
 # عدّل .env: DATABASE_URL, JWT_SECRET_KEY, SIGNED_URL_SECRET
 
-alembic revision --autogenerate -m "initial schema"
-alembic upgrade head
+alembic upgrade head                    # ينشئ كل الجداول (migration جاهزة مسبقاً)
+python -m scripts.seed_initial_data     # يضيف العملات الأساسية + حساب مدير افتراضي
 
 uvicorn app.main:app --reload
 ```
 
 يفتح توثيق تفاعلي تلقائياً على `http://localhost:8000/docs`.
+
+## التشغيل عبر Docker (الأسهل)
+
+```bash
+docker compose up --build
+```
+
+يشغّل هذا الأمر PostgreSQL وواجهة الـ API معاً، وينفّذ الترحيلات وسكربت
+التهيئة الأولية تلقائياً. الـ API تكون متاحة على
+`http://localhost:8000/docs`.
+
+بيانات المدير الافتراضي (يجب تغييرها فوراً): البريد
+`admin@wakalat-baradis.com`، كلمة المرور `ChangeMe@2026` (أو القيم التي
+تحددها عبر متغيرات البيئة `ADMIN_EMAIL` / `ADMIN_PHONE` /
+`ADMIN_PASSWORD`).
+
+## تشغيل الاختبارات
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+مجموعة الاختبارات تعمل على SQLite في الذاكرة (لا تحتاج PostgreSQL) وتغطي:
+مصفوفة انتقالات حالة الطلب، منطق محفظة الوكلاء بأوضاعها الثلاثة، التحديث
+اليدوي لسعر الصرف، RBAC، والمصادقة.
