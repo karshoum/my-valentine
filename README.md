@@ -1,1 +1,71 @@
-# my-valentine
+# وكالة براديس — منصة السفر والسياحة والخدمات (B2C & B2B)
+
+نظام خلفي (Backend API) متكامل لوكالة سفر وسياحة وخدمات أعمال، مبني بـ
+**FastAPI** و **PostgreSQL** باستخدام معمارية طبقات نظيفة (Clean
+Architecture).
+
+## نظرة عامة على الخدمات
+
+- **B2C**: تذاكر طيران، فيز، إقامات، تأمين طبي للجمهور مباشرة.
+- **B2B**: أسعار خاصة ومحفظة إلكترونية/حد ائتماني للفرانشايز والوكلاء
+  الفرعيين.
+- **دفع هجين**: تحويل بنكك (برفع إشعار) أو فيزا، مع تأكيد يدوي إلزامي من
+  الموظفين قبل إنجاز أي طلب.
+- **لوحة تحكم تنفيذية**: تعديل ديناميكي كامل، متابعة الأرباح، وتحكم يدوي
+  حصري بسعر صرف الجنيه السوداني (SDG).
+- **تتبع لحظي**: حالة كل طلب مرئية للعميل والوكيل مع سجل تدقيق كامل.
+- **Leads**: استقبال طلبات اهتمام لخدمات مستقبلية (لوجستيك، دعاية وإعلام).
+
+## هيكل المشروع (Clean Architecture)
+
+```
+app/
+  core/        إعدادات، قاعدة البيانات، JWT/bcrypt، RBAC، معالجة الأخطاء، تخزين آمن
+  models/      نماذج SQLAlchemy (تطابق مخطط قاعدة البيانات المعتمد)
+  schemas/     DTOs عبر Pydantic (Request/Response)
+  services/    منطق العمل (Business Logic) لكل ميزة بمعزل عن الراوترز
+  routers/     نقاط النهاية (Endpoints) — طبقة رقيقة تستدعي services فقط
+alembic/       ترحيلات قاعدة البيانات (migrations)
+```
+
+## القواعد المعمارية الصارمة المطبّقة
+
+1. **RBAC صارم**: كل Endpoint حساس محمي بـ `require_roles(...)` من
+   `app/core/permissions.py`، مع أدوار: `admin`, `employee`, `agent`,
+   `customer`.
+2. **الجنيه السوداني (SDG) يدوي حصرياً**: لا يوجد أي استدعاء API خارجي
+   لجلب أسعار الصرف في كامل الكود؛ التحديث يتم فقط عبر
+   `PATCH /api/v1/currencies/{code}/rate` بصلاحية `admin`، ويُسجَّل في
+   `audit_logs`.
+3. **دورة الطلب والدفع**: لا يُؤكَّد أي طلب تلقائياً بعد رفع إشعار بنكك
+   أو دفع فيزا. الحالة تبقى `pending` حتى يراجع موظف/مدير الدفع يدوياً
+   عبر `PATCH /api/v1/payments/{id}/verify`، وكل انتقال حالة يُسجَّل في
+   `order_status_logs` (انظر `app/services/order_service.py`).
+4. **الفرانشايز (B2B)**: ثلاثة أوضاع دفع لكل وكيل (`prepaid_wallet`,
+   `credit_limit`, `pay_per_order`) مطبّقة في
+   `app/services/wallet_service.py`، مع تسجيل كل حركة في
+   `agent_wallet_logs`.
+5. **حماية المرفقات**: صور الجوازات وإشعارات بنكك تُحفظ في مسار خاص غير
+   عام، ولا تُقدَّم إلا عبر رابط موقّع محدود الصلاحية
+   (`app/core/storage.py` + `app/routers/files.py`).
+6. **رسائل الأخطاء بالعربية**: أي استثناء تطبيقي (`AppException`) يعيد
+   رسالة عربية واضحة للواجهة، بينما تُسجَّل التفاصيل التقنية الدقيقة في
+   اللوجز الخلفية فقط (`app/core/exceptions.py` + `app/main.py`).
+
+## التشغيل محلياً
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env
+# عدّل .env: DATABASE_URL, JWT_SECRET_KEY, SIGNED_URL_SECRET
+
+alembic revision --autogenerate -m "initial schema"
+alembic upgrade head
+
+uvicorn app.main:app --reload
+```
+
+يفتح توثيق تفاعلي تلقائياً على `http://localhost:8000/docs`.
