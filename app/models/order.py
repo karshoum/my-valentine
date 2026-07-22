@@ -1,3 +1,5 @@
+# File: app/models/order.py
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,11 @@ from app.models.enums import OrderStatus
 
 
 class Order(Base):
+    """
+    طلب واحد (تذكرة/فيزا/إقامة/تأمين) لعميل أو وكيل. حالته تنتقل حصراً
+    عبر order_service.update_order_status وفق مصفوفة انتقالات مقيَّدة.
+    """
+
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -30,6 +37,8 @@ class Order(Base):
 
 
 class OrderPassenger(Base):
+    """بيانات مسافر واحد ضمن طلب (قد يحتوي الطلب عدة مسافرين)."""
+
     __tablename__ = "order_passengers"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -42,6 +51,8 @@ class OrderPassenger(Base):
 
 
 class OrderStatusLog(Base):
+    """سجل تدقيق لكل تغيير حالة طلب، مع تحديد الموظف الذي نفّذ التغيير."""
+
     __tablename__ = "order_status_logs"
 
     id = Column(Integer, primary_key=True, index=True)

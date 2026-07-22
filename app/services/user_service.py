@@ -1,3 +1,5 @@
+# File: app/services/user_service.py
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,22 @@ from app.services import audit_service
 
 
 def create_staff_user(db: Session, payload: StaffCreateRequest, created_by: User) -> User:
+    """
+    ينشئ حساب موظف أو مدير جديد (بصلاحية admin فقط)، ويسجّل الحركة في
+    سجل التدقيق.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        payload: بيانات الحساب الجديد ودوره (admin أو employee).
+        created_by: المدير الذي ينفّذ عملية الإنشاء.
+
+    Returns:
+        User: حساب الموظف/المدير المُنشَأ حديثاً.
+
+    Raises:
+        AppException: 400 إذا كان الدور غير مسموح، أو 409 إذا كان
+        البريد/الهاتف مسجلاً مسبقاً.
+    """
     if payload.role not in (UserRole.admin, UserRole.employee):
         raise AppException("لا يمكن إنشاء مستخدم بهذا الدور من هذه الشاشة", status_code=400)
 
@@ -41,6 +59,16 @@ def create_staff_user(db: Session, payload: StaffCreateRequest, created_by: User
 
 
 def list_users(db: Session, role: UserRole | None = None) -> list[User]:
+    """
+    يُعيد كل المستخدمين، مع إمكانية التصفية حسب الدور.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        role: دور اختياري للتصفية به.
+
+    Returns:
+        list[User]: قائمة المستخدمين مرتبة تنازلياً حسب تاريخ الإنشاء.
+    """
     query = db.query(User)
     if role:
         query = query.filter(User.role == role)
@@ -48,6 +76,19 @@ def list_users(db: Session, role: UserRole | None = None) -> list[User]:
 
 
 def get_user_or_404(db: Session, user_id: int) -> User:
+    """
+    يجلب مستخدماً بمعرّفه أو يرفع استثناءً إذا لم يوجد.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        user_id: معرّف المستخدم المطلوب.
+
+    Returns:
+        User: المستخدم المطابق.
+
+    Raises:
+        AppException: 404 إذا لم يوجد مستخدم بهذا المعرّف.
+    """
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise AppException("المستخدم غير موجود", status_code=404)
@@ -55,6 +96,22 @@ def get_user_or_404(db: Session, user_id: int) -> User:
 
 
 def set_user_active_status(db: Session, user_id: int, is_active: bool, changed_by: User) -> User:
+    """
+    يُفعّل أو يوقف حساب مستخدم، مع منع المدير من تعديل حالة حسابه الخاص.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        user_id: معرّف المستخدم المستهدَف.
+        is_active: الحالة الجديدة المطلوبة.
+        changed_by: المدير الذي ينفّذ التعديل.
+
+    Returns:
+        User: المستخدم بعد تحديث حالته.
+
+    Raises:
+        AppException: 400 إذا حاول المدير تعديل حسابه الخاص، أو 404 إذا
+        لم يوجد المستخدم المستهدَف.
+    """
     user = get_user_or_404(db, user_id)
     if user.id == changed_by.id:
         raise AppException("لا يمكنك تغيير حالة حسابك الخاص", status_code=400)

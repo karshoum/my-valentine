@@ -1,3 +1,5 @@
+# File: app/models/service.py
+
 from sqlalchemy import DECIMAL, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,8 @@ from app.models.enums import ServiceCategory
 
 
 class Service(Base):
+    """خدمة معروضة للعملاء (تذكرة طيران، فيزا، إقامة، أو تأمين)."""
+
     __tablename__ = "services"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -24,6 +28,8 @@ class Service(Base):
 
 
 class VisaResidencyDetail(Base):
+    """تفاصيل إضافية خاصة بخدمات الفيزا/الإقامة فقط (متطلبات، مدة معالجة)."""
+
     __tablename__ = "visa_residency_details"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -38,6 +44,8 @@ class VisaResidencyDetail(Base):
 
 
 class B2BServiceRate(Base):
+    """سعر خاص لخدمة معينة مخصَّص لوكيل B2B واحد، يتجاوز السعر الأساسي."""
+
     __tablename__ = "b2b_service_rates"
 
     id = Column(Integer, primary_key=True, index=True)

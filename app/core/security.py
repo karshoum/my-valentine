@@ -1,3 +1,5 @@
+# File: app/core/security.py
+
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
@@ -15,14 +17,27 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 
 def hash_password(password: str) -> str:
+    """يُشفّر كلمة مرور نصية باستخدام bcrypt ويُعيد الـ hash الناتج."""
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """يقارن كلمة مرور نصية بـ hash محفوظ، ويُعيد True عند التطابق."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """
+    يُصدر توكن JWT موقّعاً يحمل الحمولة المُمرَّرة (عادة {"sub": user_id,
+    "role": role}) مع وقت انتهاء صلاحية.
+
+    Args:
+        data: الحمولة (claims) المراد تضمينها في التوكن.
+        expires_delta: مدة الصلاحية؛ افتراضياً ACCESS_TOKEN_EXPIRE_MINUTES.
+
+    Returns:
+        str: التوكن الموقّع الجاهز للإرسال للعميل.
+    """
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -32,6 +47,18 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def decode_access_token(token: str) -> dict:
+    """
+    يفكّ تشفير توكن JWT ويتحقق من توقيعه وصلاحيته.
+
+    Args:
+        token: التوكن الخام المستلم من الترويسة Authorization.
+
+    Returns:
+        dict: الحمولة (claims) المفكوكة عند نجاح التحقق.
+
+    Raises:
+        HTTPException: 401 إذا كان التوكن غير صالح أو منتهي الصلاحية.
+    """
     try:
         return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
     except JWTError:
@@ -43,6 +70,20 @@ def decode_access_token(token: str) -> dict:
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """
+    تبعية FastAPI تستخرج المستخدم الحالي من توكن JWT المرسل في الترويسة.
+
+    Args:
+        token: التوكن المستخرَج تلقائياً بواسطة oauth2_scheme.
+        db: جلسة قاعدة البيانات.
+
+    Returns:
+        User: صف المستخدم النشط المطابق للتوكن.
+
+    Raises:
+        HTTPException: 401 إذا كان التوكن/المستخدم غير صالح، أو 403 إذا
+        كان الحساب موقوفاً.
+    """
     payload = decode_access_token(token)
     user_id = payload.get("sub")
     if user_id is None:

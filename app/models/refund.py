@@ -1,3 +1,5 @@
+# File: app/models/refund.py
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,11 @@ from app.models.enums import RefundStatus
 
 
 class Refund(Base):
+    """
+    طلب استرداد مبلغ لطلب مكتمل/قيد المعالجة، يمرّ عبر موافقة صريحة من
+    admin قبل التنفيذ الفعلي (انظر refund_service).
+    """
+
     __tablename__ = "refunds"
 
     id = Column(Integer, primary_key=True, index=True)

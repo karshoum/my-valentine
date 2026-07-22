@@ -1,3 +1,5 @@
+# File: app/models/wallet.py
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,8 @@ from app.models.enums import WalletTransactionType
 
 
 class AgentWalletLog(Base):
+    """سجل حركة واحدة (إيداع/خصم/استرداد) على محفظة وكيل B2B."""
+
     __tablename__ = "agent_wallet_logs"
 
     id = Column(Integer, primary_key=True, index=True)

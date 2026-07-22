@@ -1,3 +1,5 @@
+# File: scripts/seed_initial_data.py
+
 """
 تهيئة البيانات الأساسية لمنصة وكالة براديس بعد تشغيل الترحيلات
 (alembic upgrade head) على قاعدة بيانات فارغة: العملات الأساسية وحساب
@@ -12,6 +14,8 @@
 """
 
 import os
+
+from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
 from app.core.security import hash_password
@@ -28,7 +32,8 @@ DEFAULT_CURRENCIES = [
 ]
 
 
-def seed_currencies(db) -> None:
+def seed_currencies(db: Session) -> None:
+    """يضيف العملات الأساسية إن لم تكن موجودة مسبقاً (لا يُكرِّر الإدخال)."""
     for entry in DEFAULT_CURRENCIES:
         exists = db.query(Currency).filter(Currency.code == entry["code"]).first()
         if exists:
@@ -37,7 +42,8 @@ def seed_currencies(db) -> None:
         print(f"تمت إضافة العملة: {entry['code']}")
 
 
-def seed_admin(db) -> None:
+def seed_admin(db: Session) -> None:
+    """ينشئ حساب مدير افتراضياً واحداً إذا لم يوجد أي حساب admin بعد."""
     email = os.getenv("ADMIN_EMAIL", "admin@wakalat-baradis.com")
     phone = os.getenv("ADMIN_PHONE", "0900000000")
     password = os.getenv("ADMIN_PASSWORD", "ChangeMe@2026")
@@ -59,6 +65,7 @@ def seed_admin(db) -> None:
 
 
 def main() -> None:
+    """نقطة الدخول: يفتح جلسة قاعدة بيانات وينفّذ كل خطوات التهيئة."""
     db = SessionLocal()
     try:
         seed_currencies(db)

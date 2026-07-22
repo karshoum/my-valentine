@@ -1,3 +1,5 @@
+# File: app/schemas/service.py
+
 from datetime import datetime
 from decimal import Decimal
 
@@ -7,6 +9,8 @@ from app.models.enums import ServiceCategory
 
 
 class VisaResidencyDetailIn(BaseModel):
+    """تفاصيل فيزا/إقامة تُرفَق عند إنشاء خدمة من هذين النوعين."""
+
     country: str = Field(max_length=50)
     type: str = Field(max_length=50)
     requirements: str | None = None
@@ -15,6 +19,8 @@ class VisaResidencyDetailIn(BaseModel):
 
 
 class VisaResidencyDetailOut(VisaResidencyDetailIn):
+    """تمثيل تفاصيل الفيزا/الإقامة في الاستجابات، مع معرّفاتها."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -22,6 +28,8 @@ class VisaResidencyDetailOut(VisaResidencyDetailIn):
 
 
 class ServiceCreateRequest(BaseModel):
+    """بيانات إنشاء خدمة جديدة (بصلاحية موظف/مدير)."""
+
     category: ServiceCategory
     title: str = Field(min_length=2, max_length=150)
     description: str | None = None
@@ -30,6 +38,8 @@ class ServiceCreateRequest(BaseModel):
 
 
 class ServiceUpdateRequest(BaseModel):
+    """حقول الخدمة القابلة للتعديل الجزئي (كلها اختيارية)."""
+
     title: str | None = None
     description: str | None = None
     base_price_usd: Decimal | None = None
@@ -37,6 +47,8 @@ class ServiceUpdateRequest(BaseModel):
 
 
 class ServiceOut(BaseModel):
+    """تمثيل خدمة كاملة في الاستجابات، مع تفاصيل الفيزا/الإقامة إن وُجدت."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -50,6 +62,8 @@ class ServiceOut(BaseModel):
 
 
 class ServicePriceOut(BaseModel):
+    """سعر خدمة محسوب بعملة مستهدفة (يُستخدم في شاشات العرض)."""
+
     service_id: int
     title: str
     currency_code: str

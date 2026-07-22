@@ -1,3 +1,7 @@
+# File: tests/test_permissions.py
+
+"""اختبارات تبعية require_roles (RBAC) على مستوى الوحدة."""
+
 import pytest
 from fastapi import HTTPException
 

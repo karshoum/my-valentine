@@ -1,3 +1,7 @@
+# File: tests/test_order_service.py
+
+"""اختبارات دورة حياة الطلب: الإنشاء، التسعير بالعملة المستهدفة، ومصفوفة انتقالات الحالة."""
+
 from decimal import Decimal
 
 import pytest

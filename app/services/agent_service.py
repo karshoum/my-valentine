@@ -1,3 +1,7 @@
+# File: app/services/agent_service.py
+
+from decimal import Decimal
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -12,6 +16,20 @@ from app.services import audit_service
 
 
 def create_agent(db: Session, payload: AgentCreateRequest, created_by: User) -> AgentProfile:
+    """
+    ينشئ حساب مستخدم بدور agent مع ملف تعريف وكيل B2B مرتبط به.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        payload: بيانات الحساب واسم الوكالة ووضع الدفع وحدودها المالية.
+        created_by: المدير الذي ينفّذ عملية الإنشاء.
+
+    Returns:
+        AgentProfile: ملف الوكيل المُنشَأ حديثاً.
+
+    Raises:
+        AppException: 409 إذا كان البريد أو الهاتف مسجلاً مسبقاً.
+    """
     existing_filters = [User.phone == payload.phone]
     if payload.email:
         existing_filters.append(User.email == payload.email)
@@ -51,10 +69,12 @@ def create_agent(db: Session, payload: AgentCreateRequest, created_by: User) -> 
 
 
 def list_agents(db: Session) -> list[AgentProfile]:
+    """يُعيد كل ملفات الوكلاء مرتبة تنازلياً حسب تاريخ الإنشاء."""
     return db.query(AgentProfile).order_by(AgentProfile.created_at.desc()).all()
 
 
 def get_agent_or_404(db: Session, agent_id: int) -> AgentProfile:
+    """يجلب ملف وكيل بمعرّفه أو يرفع استثناء 404 إذا لم يوجد."""
     agent = db.query(AgentProfile).filter(AgentProfile.id == agent_id).first()
     if not agent:
         raise AppException("الوكيل غير موجود", status_code=404)
@@ -62,6 +82,7 @@ def get_agent_or_404(db: Session, agent_id: int) -> AgentProfile:
 
 
 def get_agent_by_user_or_404(db: Session, user_id: int) -> AgentProfile:
+    """يجلب ملف وكيل عبر معرّف حساب المستخدم المرتبط به، أو يرفع استثناء 404."""
     agent = db.query(AgentProfile).filter(AgentProfile.user_id == user_id).first()
     if not agent:
         raise AppException("لا يوجد ملف وكيل مرتبط بهذا الحساب", status_code=404)
@@ -69,6 +90,18 @@ def get_agent_by_user_or_404(db: Session, user_id: int) -> AgentProfile:
 
 
 def update_agent(db: Session, agent_id: int, payload: AgentUpdateRequest, changed_by: User) -> AgentProfile:
+    """
+    يحدّث حقول ملف وكيل جزئياً (وضع الدفع، الحد الائتماني، نسبة الخصم).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        agent_id: معرّف الوكيل المستهدَف.
+        payload: الحقول المُراد تعديلها (المُرسَلة فقط تُطبَّق).
+        changed_by: المدير الذي ينفّذ التعديل.
+
+    Returns:
+        AgentProfile: ملف الوكيل بعد التحديث.
+    """
     agent = get_agent_or_404(db, agent_id)
 
     updates = payload.model_dump(exclude_unset=True)
@@ -87,6 +120,21 @@ def update_agent(db: Session, agent_id: int, payload: AgentUpdateRequest, change
 
 
 def set_custom_rate(db: Session, agent_id: int, payload: CustomRateCreateRequest, changed_by: User) -> B2BServiceRate:
+    """
+    يحدّد أو يحدّث سعراً خاصاً لخدمة معينة لوكيل محدد.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        agent_id: معرّف الوكيل.
+        payload: معرّف الخدمة والسعر الخاص الجديد.
+        changed_by: المدير الذي ينفّذ التعديل.
+
+    Returns:
+        B2BServiceRate: السعر الخاص بعد الإنشاء أو التحديث.
+
+    Raises:
+        AppException: 404 إذا لم يوجد الوكيل أو الخدمة.
+    """
     agent = get_agent_or_404(db, agent_id)
     service = db.query(Service).filter(Service.id == payload.service_id).first()
     if not service:
@@ -116,7 +164,19 @@ def set_custom_rate(db: Session, agent_id: int, payload: CustomRateCreateRequest
     return rate
 
 
-def get_effective_price_usd(db: Session, service: Service, agent: AgentProfile | None):
+def get_effective_price_usd(db: Session, service: Service, agent: AgentProfile | None) -> Decimal:
+    """
+    يحسب السعر الفعلي بالدولار لخدمة معينة، مراعياً وجود سعر B2B خاص أو
+    نسبة خصم الوكيل، أو السعر الأساسي إذا لم يكن الطالب وكيلاً.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        service: الخدمة المطلوب تسعيرها.
+        agent: ملف الوكيل الطالب، أو None إذا كان عميلاً عادياً.
+
+    Returns:
+        Decimal: السعر النهائي بالدولار الأمريكي.
+    """
     if agent:
         custom_rate = (
             db.query(B2BServiceRate)

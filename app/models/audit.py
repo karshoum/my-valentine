@@ -1,3 +1,5 @@
+# File: app/models/audit.py
+
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
@@ -10,6 +12,11 @@ JSONVariant = JSON().with_variant(JSONB, "postgresql")
 
 
 class AuditLog(Base):
+    """
+    سجل تدقيق لكل حركة مالية أو إدارية حساسة (تغيير سعر صرف، موافقة على
+    مسترد، تعديل صلاحية مستخدم، ...). يُكتَب إليه من audit_service فقط.
+    """
+
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)

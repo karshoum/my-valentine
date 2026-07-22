@@ -1,3 +1,5 @@
+# File: app/models/agent.py
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,11 @@ from app.models.enums import PaymentMode
 
 
 class AgentProfile(Base):
+    """
+    ملف تعريف وكيل B2B (فرانشايز) مرتبط بحساب مستخدم واحد؛ يحمل وضع
+    الدفع، رصيد المحفظة، الحد الائتماني، ونسبة الخصم الافتراضية.
+    """
+
     __tablename__ = "agent_profiles"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -1,3 +1,5 @@
+# File: app/models/user.py
+
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,11 @@ from app.models.enums import UserRole
 
 
 class User(Base):
+    """
+    حساب مستخدم واحد في النظام (admin/employee/agent/customer). حسابات
+    الوكلاء ترتبط بسجل AgentProfile إضافي عبر agent_profile.
+    """
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -1,3 +1,5 @@
+# File: app/schemas/order.py
+
 from datetime import datetime
 from decimal import Decimal
 
@@ -7,11 +9,15 @@ from app.models.enums import OrderStatus
 
 
 class OrderPassengerIn(BaseModel):
+    """بيانات مسافر واحد تُرسَل عند إنشاء طلب."""
+
     full_name: str = Field(min_length=2, max_length=100)
     passport_number: str | None = None
 
 
 class OrderPassengerOut(BaseModel):
+    """تمثيل مسافر ضمن طلب في الاستجابات."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -21,17 +27,23 @@ class OrderPassengerOut(BaseModel):
 
 
 class OrderCreateRequest(BaseModel):
+    """بيانات إنشاء طلب جديد: الخدمة، عملة السداد، وقائمة المسافرين."""
+
     service_id: int
     currency_code: str = Field(min_length=2, max_length=5)
     passengers: list[OrderPassengerIn] = Field(min_length=1)
 
 
 class OrderStatusUpdateRequest(BaseModel):
+    """طلب تغيير حالة طلب من موظف/مدير، مع ملاحظة اختيارية."""
+
     new_status: OrderStatus
     notes: str | None = None
 
 
 class OrderStatusLogOut(BaseModel):
+    """تمثيل سطر واحد من سجل تغييرات حالة الطلب."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -43,6 +55,8 @@ class OrderStatusLogOut(BaseModel):
 
 
 class OrderOut(BaseModel):
+    """تمثيل طلب كامل مع مسافريه وسجل حالاته."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int

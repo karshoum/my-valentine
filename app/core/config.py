@@ -1,7 +1,17 @@
+# File: app/core/config.py
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """
+    إعدادات التطبيق المقروءة من متغيرات البيئة أو ملف .env.
+
+    كل الحقول بلا قيمة افتراضية (DATABASE_URL, JWT_SECRET_KEY,
+    SIGNED_URL_SECRET) إلزامية ويجب توفيرها قبل تشغيل التطبيق؛ غيابها
+    يوقف الإقلاع فوراً بدلاً من العمل بقيم غير آمنة ضمنية.
+    """
+
     APP_NAME: str = "Wakalat Baradis Platform"
     ENVIRONMENT: str = "development"
 

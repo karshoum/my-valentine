@@ -1,3 +1,5 @@
+# File: app/routers/users.py
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -13,7 +15,8 @@ router = APIRouter(prefix="/api/v1/users", tags=["المستخدمون"])
 
 
 @router.get("/me", response_model=UserOut)
-def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user)) -> User:
+    """يُعيد بيانات المستخدم الحالي المُستخرَج من توكن الدخول."""
     return current_user
 
 
@@ -22,7 +25,8 @@ def create_staff(
     payload: StaffCreateRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> User:
+    """ينشئ حساب موظف أو مدير جديداً (بصلاحية admin فقط)."""
     return user_service.create_staff_user(db, payload, admin_user)
 
 
@@ -31,7 +35,8 @@ def list_users(
     role: UserRole | None = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
-):
+) -> list[User]:
+    """يُعيد كل المستخدمين، مع تصفية اختيارية حسب الدور (admin فقط)."""
     return user_service.list_users(db, role)
 
 
@@ -41,5 +46,6 @@ def update_user_status(
     payload: UserStatusUpdateRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> User:
+    """يُفعّل أو يوقف حساب مستخدم (admin فقط)."""
     return user_service.set_user_active_status(db, user_id, payload.is_active, admin_user)

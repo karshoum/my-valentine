@@ -1,3 +1,8 @@
+# File: tests/test_auth_api.py
+
+"""اختبارات مسار المصادقة (تسجيل عميل جديد، تسجيل الدخول، وحماية Endpoint محمي)."""
+
+
 def test_register_customer_success(client):
     response = client.post(
         "/api/v1/auth/register",

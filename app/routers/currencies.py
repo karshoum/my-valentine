@@ -1,17 +1,21 @@
+# File: app/routers/currencies.py
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.permissions import require_admin
-from app.schemas.currency import CurrencyCreateRequest, CurrencyManualUpdateRequest, CurrencyOut
+from app.models.currency import Currency
 from app.models.user import User
+from app.schemas.currency import CurrencyCreateRequest, CurrencyManualUpdateRequest, CurrencyOut
 from app.services import currency_service
 
 router = APIRouter(prefix="/api/v1/currencies", tags=["العملات وسعر الصرف"])
 
 
 @router.get("", response_model=list[CurrencyOut])
-def list_currencies(db: Session = Depends(get_db)):
+def list_currencies(db: Session = Depends(get_db)) -> list[Currency]:
+    """يُعيد كل العملات المسجَّلة في النظام (عام، بلا تسجيل دخول)."""
     return currency_service.list_currencies(db)
 
 
@@ -20,7 +24,8 @@ def create_currency(
     payload: CurrencyCreateRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> Currency:
+    """يضيف عملة جديدة بسعر ابتدائي (admin فقط)."""
     return currency_service.create_currency(db, payload, admin_user)
 
 
@@ -30,7 +35,7 @@ def update_currency_rate(
     payload: CurrencyManualUpdateRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> Currency:
     """
     التحديث اليدوي الحصري لسعر الصرف (مثال: الجنيه السوداني SDG مقابل
     الدولار). متاح فقط للمدير (admin)، ولا يوجد أي مسار آخر في النظام

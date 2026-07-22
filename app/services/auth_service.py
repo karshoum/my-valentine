@@ -1,3 +1,5 @@
+# File: app/services/auth_service.py
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -9,6 +11,19 @@ from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
 
 
 def register_customer(db: Session, payload: RegisterRequest) -> User:
+    """
+    يسجّل حساب عميل جديد (B2C) بعد التأكد من عدم تكرار البريد أو الهاتف.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        payload: بيانات التسجيل (الاسم، البريد، الهاتف، كلمة المرور).
+
+    Returns:
+        User: حساب العميل المُنشَأ حديثاً.
+
+    Raises:
+        AppException: 409 إذا كان البريد أو الهاتف مسجلاً مسبقاً.
+    """
     existing_filters = [User.phone == payload.phone]
     if payload.email:
         existing_filters.append(User.email == payload.email)
@@ -31,6 +46,20 @@ def register_customer(db: Session, payload: RegisterRequest) -> User:
 
 
 def authenticate(db: Session, payload: LoginRequest) -> TokenResponse:
+    """
+    يتحقق من بيانات تسجيل الدخول (بريد/هاتف + كلمة مرور) ويصدر توكن JWT.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        payload: المُعرّف (بريد أو هاتف) وكلمة المرور.
+
+    Returns:
+        TokenResponse: التوكن الموقّع مع دور المستخدم واسمه.
+
+    Raises:
+        AppException: 401 إذا كانت بيانات الدخول خاطئة، أو 403 إذا كان
+        الحساب موقوفاً.
+    """
     user = (
         db.query(User)
         .filter(or_(User.email == payload.identifier, User.phone == payload.identifier))

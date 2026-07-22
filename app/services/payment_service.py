@@ -1,3 +1,5 @@
+# File: app/services/payment_service.py
+
 """
 آلية الدفع الهجينة (بنكك / فيزا / محفظة الوكيل).
 
@@ -28,6 +30,25 @@ def submit_payment(
     payload: PaymentSubmitRequest,
     receipt_file: UploadFile | None,
 ) -> Payment:
+    """
+    يسجّل محاولة دفع جديدة (بنكك أو فيزا) لطلب قائم، بحالة pending دائماً
+    حتى تُراجَع يدوياً لاحقاً.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        order_id: معرّف الطلب المُراد سداده.
+        current_user: صاحب الطلب (عميل أو وكيل).
+        payload: طريقة الدفع والمبلغ ومرجع التحويل إن وُجد.
+        receipt_file: صورة إشعار التحويل (إلزامية لطريقة بنكك).
+
+    Returns:
+        Payment: سجل الدفع المُنشَأ بحالة pending.
+
+    Raises:
+        AppException: 400 إذا لم يكن الطلب بحالة pending، أو كانت طريقة
+        الدفع محفظة وكيل (تُخصَم تلقائياً فقط)، أو لم تُرفَق صورة إشعار
+        بنكك.
+    """
     order = order_service.get_order_with_access_check(db, order_id, current_user)
 
     if order.status != OrderStatus.pending:
@@ -59,6 +80,7 @@ def submit_payment(
 
 
 def get_payment_or_404(db: Session, payment_id: int) -> Payment:
+    """يجلب سجل دفع بمعرّفه أو يرفع استثناء 404 إذا لم يوجد."""
     payment = db.query(Payment).filter(Payment.id == payment_id).first()
     if not payment:
         raise AppException("سجل الدفع غير موجود", status_code=404)
@@ -66,6 +88,24 @@ def get_payment_or_404(db: Session, payment_id: int) -> Payment:
 
 
 def verify_payment(db: Session, payment_id: int, approve: bool, notes: str | None, employee: User) -> Payment:
+    """
+    يراجع موظف/مدير محاولة دفع معلَّقة ويقرّر قبولها أو رفضها. القبول
+    فقط هو ما ينقل الطلب من pending إلى processing.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        payment_id: معرّف سجل الدفع المُراد مراجعته.
+        approve: True لتأكيد الدفع، False لرفضه.
+        notes: ملاحظة اختيارية ترافق القرار.
+        employee: الموظف/المدير الذي ينفّذ المراجعة.
+
+    Returns:
+        Payment: سجل الدفع بعد تحديث حالته.
+
+    Raises:
+        AppException: 404 إذا لم يوجد سجل الدفع، أو 400 إذا كان قد رُوجِع
+        مسبقاً.
+    """
     payment = get_payment_or_404(db, payment_id)
 
     if payment.status != PaymentStatus.pending:

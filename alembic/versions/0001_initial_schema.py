@@ -1,3 +1,5 @@
+# File: alembic/versions/0001_initial_schema.py
+
 """initial schema
 
 Revision ID: 0001_initial_schema

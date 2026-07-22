@@ -1,3 +1,5 @@
+# File: app/schemas/payment.py
+
 from datetime import datetime
 from decimal import Decimal
 
@@ -7,6 +9,8 @@ from app.models.enums import PaymentMethod, PaymentStatus
 
 
 class PaymentSubmitRequest(BaseModel):
+    """بيانات رفع إثبات دفع (بنكك/فيزا) من العميل أو الوكيل."""
+
     payment_method: PaymentMethod
     amount: Decimal
     currency_code: str | None = None
@@ -14,11 +18,15 @@ class PaymentSubmitRequest(BaseModel):
 
 
 class PaymentVerifyRequest(BaseModel):
+    """قرار موظف/مدير بعد مراجعة إثبات الدفع: قبول أو رفض."""
+
     approve: bool
     notes: str | None = None
 
 
 class PaymentOut(BaseModel):
+    """تمثيل سجل دفع كامل في الاستجابات."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int

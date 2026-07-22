@@ -1,3 +1,5 @@
+# File: app/models/currency.py
+
 from sqlalchemy import DECIMAL, Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.sql import func
 
@@ -5,6 +7,12 @@ from app.core.database import Base
 
 
 class Currency(Base):
+    """
+    عملة معتمدة في النظام (SDG, USD, SAR, AED, TRY, ...). سعر الصرف
+    (rate_to_usd) يُحدَّث حصراً عبر currency_service.update_currency_rate
+    بصلاحية admin، ولا يوجد أي مسار آلي آخر لتحديثه.
+    """
+
     __tablename__ = "currencies"
 
     id = Column(Integer, primary_key=True, index=True)

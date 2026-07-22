@@ -1,9 +1,12 @@
+# File: app/routers/refunds.py
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.permissions import require_admin
 from app.core.security import get_current_user
+from app.models.refund import Refund
 from app.models.user import User
 from app.schemas.refund import RefundCreateRequest, RefundDecisionRequest, RefundOut
 from app.services import refund_service
@@ -17,7 +20,8 @@ def create_refund_request(
     payload: RefundCreateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> Refund:
+    """ينشئ طلب استرداد جديداً لطلب قائم (بحالة pending)."""
     return refund_service.create_refund_request(db, order_id, current_user, payload)
 
 
@@ -26,7 +30,8 @@ def approve_refund(
     refund_id: int,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> Refund:
+    """يعتمد طلب استرداد معلَّقاً (admin فقط)."""
     return refund_service.approve_refund(db, refund_id, admin_user)
 
 
@@ -36,7 +41,8 @@ def decline_refund(
     payload: RefundDecisionRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> Refund:
+    """يرفض طلب استرداد معلَّقاً (admin فقط)."""
     return refund_service.decline_refund(db, refund_id, admin_user, payload.notes)
 
 
@@ -45,5 +51,6 @@ def process_refund(
     refund_id: int,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
-):
+) -> Refund:
+    """ينفّذ استرداداً معتمَداً فعلياً، بما يشمل إعادة المبلغ لمحفظة الوكيل إن انطبق (admin فقط)."""
     return refund_service.process_refund(db, refund_id, admin_user)

@@ -1,3 +1,5 @@
+# File: app/schemas/audit.py
+
 from datetime import datetime
 from typing import Any
 
@@ -5,6 +7,8 @@ from pydantic import BaseModel, ConfigDict
 
 
 class AuditLogOut(BaseModel):
+    """تمثيل سطر واحد من سجل التدقيق (audit_logs) في الاستجابات."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int

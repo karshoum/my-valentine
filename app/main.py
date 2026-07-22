@@ -1,3 +1,5 @@
+# File: app/main.py
+
 import logging
 
 from fastapi import FastAPI, Request
@@ -38,14 +40,16 @@ app.add_middleware(
 
 
 @app.exception_handler(AppException)
-async def app_exception_handler(request: Request, exc: AppException):
+async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+    """يحوّل أي AppException إلى استجابة JSON برسالة عربية، ويسجّل التفاصيل التقنية في اللوجز فقط."""
     if exc.technical_detail:
         logger.error("AppException @ %s: %s", request.url.path, exc.technical_detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message_ar})
 
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """يلتقط أي خطأ غير متوقع، يسجّل تتبّعه الكامل في اللوجز، ويعيد رسالة عربية عامة للعميل."""
     logger.exception("خطأ غير متوقع في %s", request.url.path)
     return JSONResponse(
         status_code=500,
@@ -67,5 +71,6 @@ app.include_router(files.router)
 
 
 @app.get("/", tags=["الحالة"])
-def health_check():
+def health_check() -> dict[str, str]:
+    """فحص صحة بسيط للتأكد من أن الخدمة تعمل."""
     return {"status": "ok", "app": settings.APP_NAME}

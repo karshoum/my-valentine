@@ -1,3 +1,5 @@
+# File: app/services/wallet_service.py
+
 """
 نظام محفظة الوكلاء (B2B Agent Wallet).
 
@@ -25,6 +27,22 @@ from app.services import audit_service
 
 
 def deposit(db: Session, agent: AgentProfile, amount: Decimal, admin_user: User, notes: str | None) -> AgentWalletLog:
+    """
+    يودع مبلغاً في محفظة وكيل (بصلاحية موظف/مدير)، ويسجّل الحركة.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        agent: ملف الوكيل المستهدَف.
+        amount: المبلغ المُراد إيداعه (يجب أن يكون أكبر من صفر).
+        admin_user: الموظف/المدير الذي ينفّذ الإيداع.
+        notes: ملاحظة اختيارية ترافق الحركة.
+
+    Returns:
+        AgentWalletLog: سجل الحركة المُضاف.
+
+    Raises:
+        AppException: 400 إذا كان المبلغ صفراً أو سالباً.
+    """
     if amount <= 0:
         raise AppException("قيمة الإيداع يجب أن تكون أكبر من صفر", status_code=400)
 
@@ -48,6 +66,21 @@ def deposit(db: Session, agent: AgentProfile, amount: Decimal, admin_user: User,
 
 
 def deduct_for_order(db: Session, agent: AgentProfile, order: Order) -> AgentWalletLog:
+    """
+    يخصم قيمة طلب من محفظة وكيل وفق وضع الدفع الخاص به.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        agent: ملف الوكيل صاحب الطلب.
+        order: الطلب المُراد خصم قيمته.
+
+    Returns:
+        AgentWalletLog: سجل حركة الخصم المُضاف (لم يُنفَّذ commit بعد).
+
+    Raises:
+        AppException: 400 إذا كان وضع الدفع pay_per_order، أو إذا كان
+        الرصيد/الحد الائتماني غير كافٍ.
+    """
     amount = order.total_amount
 
     if agent.payment_mode == PaymentMode.pay_per_order:
@@ -78,6 +111,18 @@ def deduct_for_order(db: Session, agent: AgentProfile, order: Order) -> AgentWal
 
 
 def refund_to_wallet(db: Session, agent: AgentProfile, amount: Decimal, order: Order) -> AgentWalletLog:
+    """
+    يعيد مبلغاً إلى محفظة وكيل عند استرداد طلب، ويسجّل الحركة.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        agent: ملف الوكيل المستفيد من الاسترداد.
+        amount: المبلغ المُراد إعادته.
+        order: الطلب المرتبط بالاسترداد.
+
+    Returns:
+        AgentWalletLog: سجل حركة الاسترداد المُضاف (لم يُنفَّذ commit بعد).
+    """
     agent.wallet_balance = agent.wallet_balance + amount
     log = AgentWalletLog(
         agent_id=agent.id,
@@ -91,6 +136,7 @@ def refund_to_wallet(db: Session, agent: AgentProfile, amount: Decimal, order: O
 
 
 def list_wallet_logs(db: Session, agent: AgentProfile) -> list[AgentWalletLog]:
+    """يُعيد كل حركات محفظة وكيل مرتبة تنازلياً حسب التاريخ."""
     return (
         db.query(AgentWalletLog)
         .filter(AgentWalletLog.agent_id == agent.id)

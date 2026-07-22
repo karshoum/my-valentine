@@ -1,3 +1,7 @@
+# File: tests/test_wallet_service.py
+
+"""اختبارات منطق محفظة الوكيل بأوضاعها الثلاثة: مسبقة، حد ائتماني، ولكل طلب."""
+
 from decimal import Decimal
 
 import pytest

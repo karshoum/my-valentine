@@ -1,3 +1,5 @@
+# File: app/models/payment.py
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,6 +9,12 @@ from app.models.enums import PaymentMethod, PaymentStatus
 
 
 class Payment(Base):
+    """
+    محاولة دفع واحدة لطلب (بنكك/فيزا/محفظة وكيل). تبقى بحالة pending
+    حتى تُراجَع يدوياً عبر payment_service.verify_payment (باستثناء
+    محفظة الوكيل التي تُخصم وتُؤكَّد تلقائياً عند إنشاء الطلب).
+    """
+
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)

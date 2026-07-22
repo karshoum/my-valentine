@@ -1,3 +1,5 @@
+# File: app/routers/payments.py
+
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -5,6 +7,7 @@ from app.core.database import get_db
 from app.core.permissions import require_staff
 from app.core.security import get_current_user
 from app.models.enums import PaymentMethod
+from app.models.payment import Payment
 from app.models.user import User
 from app.schemas.payment import PaymentOut, PaymentSubmitRequest, PaymentVerifyRequest
 from app.services import payment_service
@@ -22,7 +25,8 @@ def submit_payment(
     receipt_file: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> Payment:
+    """يرفع محاولة دفع (بنكك أو فيزا) لطلب قائم، بحالة pending دائماً."""
     payload = PaymentSubmitRequest(
         payment_method=payment_method,
         amount=amount,
@@ -38,7 +42,7 @@ def verify_payment(
     payload: PaymentVerifyRequest,
     db: Session = Depends(get_db),
     staff_user: User = Depends(require_staff),
-):
+) -> Payment:
     """
     مراجعة يدوية إلزامية من موظف أو مدير قبل انتقال الطلب من pending إلى
     processing. لا يوجد أي مسار آخر يؤكد الدفع تلقائياً.

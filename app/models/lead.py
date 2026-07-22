@@ -1,3 +1,5 @@
+# File: app/models/lead.py
+
 from sqlalchemy import Column, DateTime, Enum, Integer, String, Text
 from sqlalchemy.sql import func
 
@@ -6,6 +8,8 @@ from app.models.enums import LeadServiceType
 
 
 class LeadRequest(Base):
+    """طلب اهتمام عام (Lead) بخدمة مستقبلية (لوجستيك أو دعاية وإعلام)."""
+
     __tablename__ = "lead_requests"
 
     id = Column(Integer, primary_key=True, index=True)

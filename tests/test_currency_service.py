@@ -1,3 +1,7 @@
+# File: tests/test_currency_service.py
+
+"""اختبارات منطق العملات: التحويل، والتحديث اليدوي الحصري لسعر الصرف."""
+
 from decimal import Decimal
 
 import pytest

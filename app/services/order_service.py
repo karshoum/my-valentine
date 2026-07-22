@@ -1,3 +1,5 @@
+# File: app/services/order_service.py
+
 """
 دورة حياة الطلب (Order Workflow).
 
@@ -32,12 +34,30 @@ ALLOWED_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
 
 
 def _generate_order_number() -> str:
+    """يولّد رقم طلب فريد بصيغة WB-YYMMDD-XXXXX."""
     timestamp_part = datetime.now(timezone.utc).strftime("%y%m%d")
     random_part = "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
     return f"WB-{timestamp_part}-{random_part}"
 
 
 def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -> Order:
+    """
+    ينشئ طلباً جديداً بحالة pending، مع حساب السعر الفعلي وتحويله للعملة
+    المطلوبة، وخصم قيمته تلقائياً إذا كان الطالب وكيلاً بوضع دفع مسبق أو
+    حد ائتماني.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        current_user: المستخدم صاحب الطلب (عميل أو وكيل).
+        payload: الخدمة المطلوبة، عملة السداد، وقائمة المسافرين.
+
+    Returns:
+        Order: الطلب المُنشَأ حديثاً مع مسافريه وسجل حالته الأول.
+
+    Raises:
+        AppException: 400 إذا كانت الخدمة غير مفعَّلة، أو إذا فشل خصم
+        محفظة الوكيل (رصيد/حد ائتماني غير كافٍ).
+    """
     service = service_service.get_service_or_404(db, payload.service_id)
     if not service.is_active:
         raise AppException("هذه الخدمة غير متاحة حالياً", status_code=400)
@@ -84,6 +104,7 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
 
 
 def get_order_or_404(db: Session, order_id: int) -> Order:
+    """يجلب طلباً بمعرّفه أو يرفع استثناء 404 إذا لم يوجد."""
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise AppException("الطلب غير موجود", status_code=404)
@@ -91,6 +112,22 @@ def get_order_or_404(db: Session, order_id: int) -> Order:
 
 
 def get_order_with_access_check(db: Session, order_id: int, current_user: User) -> Order:
+    """
+    يجلب طلباً مع التحقق من صلاحية الوصول: الموظف/المدير يرى كل الطلبات،
+    وأي مستخدم آخر يرى طلباته الخاصة فقط.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        order_id: معرّف الطلب المطلوب.
+        current_user: المستخدم الحالي.
+
+    Returns:
+        Order: الطلب المطابق.
+
+    Raises:
+        AppException: 404 إذا لم يوجد الطلب، أو 403 إذا لم يملك المستخدم
+        صلاحية الاطلاع عليه.
+    """
     order = get_order_or_404(db, order_id)
     if current_user.role in (UserRole.admin, UserRole.employee):
         return order
@@ -100,6 +137,16 @@ def get_order_with_access_check(db: Session, order_id: int, current_user: User) 
 
 
 def list_orders_for_user(db: Session, current_user: User) -> list[Order]:
+    """
+    يُعيد طلبات المستخدم الحالي، أو كل الطلبات إذا كان موظفاً/مديراً.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        current_user: المستخدم الحالي.
+
+    Returns:
+        list[Order]: الطلبات مرتبة تنازلياً حسب تاريخ الإنشاء.
+    """
     query = db.query(Order)
     if current_user.role not in (UserRole.admin, UserRole.employee):
         query = query.filter(Order.user_id == current_user.id)
@@ -109,6 +156,24 @@ def list_orders_for_user(db: Session, current_user: User) -> list[Order]:
 def update_order_status(
     db: Session, order_id: int, new_status: OrderStatus, employee: User, notes: str | None
 ) -> Order:
+    """
+    ينقل حالة طلب إلى حالة جديدة وفق مصفوفة الانتقالات المسموحة فقط،
+    ويسجّل التغيير في order_status_logs مع معرّف الموظف المُنفِّذ.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        order_id: معرّف الطلب المستهدَف.
+        new_status: الحالة الجديدة المطلوب الانتقال إليها.
+        employee: الموظف/المدير الذي ينفّذ التغيير.
+        notes: ملاحظة اختيارية ترافق التغيير.
+
+    Returns:
+        Order: الطلب بعد تحديث حالته.
+
+    Raises:
+        AppException: 404 إذا لم يوجد الطلب، أو 400 إذا كان الانتقال
+        المطلوب غير مسموح من الحالة الحالية.
+    """
     order = get_order_or_404(db, order_id)
 
     allowed_next = ALLOWED_TRANSITIONS.get(order.status, set())

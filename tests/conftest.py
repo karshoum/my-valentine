@@ -1,3 +1,5 @@
+# File: tests/conftest.py
+
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
@@ -29,6 +31,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture()
 def db_session():
+    """ينشئ كل الجداول على SQLite في الذاكرة، ويوفّر جلسة نظيفة لكل اختبار."""
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
@@ -40,6 +43,8 @@ def db_session():
 
 @pytest.fixture()
 def client(db_session):
+    """يوفّر TestClient لتطبيق FastAPI مع استبدال get_db بجلسة الاختبار."""
+
     def override_get_db():
         yield db_session
 
@@ -51,6 +56,7 @@ def client(db_session):
 
 @pytest.fixture()
 def usd_currency(db_session):
+    """يضيف عملة الدولار الأمريكي (سعر أساس = 1) لاستخدامها في اختبارات التسعير."""
     currency = Currency(code="USD", name="US Dollar", rate_to_usd=1, is_manual=True)
     db_session.add(currency)
     db_session.commit()
@@ -60,6 +66,7 @@ def usd_currency(db_session):
 
 @pytest.fixture()
 def sdg_currency(db_session):
+    """يضيف عملة الجنيه السوداني بسعر 600 مقابل الدولار لاختبار التحويل اليدوي."""
     currency = Currency(code="SDG", name="Sudanese Pound", rate_to_usd=600, is_manual=True)
     db_session.add(currency)
     db_session.commit()
@@ -69,6 +76,7 @@ def sdg_currency(db_session):
 
 @pytest.fixture()
 def admin_user(db_session):
+    """ينشئ حساب مدير (admin) جاهزاً للاستخدام في اختبارات الصلاحيات."""
     user = User(
         full_name="مدير النظام",
         email="admin@baradis.example",
@@ -84,6 +92,7 @@ def admin_user(db_session):
 
 @pytest.fixture()
 def employee_user(db_session):
+    """ينشئ حساب موظف (employee) جاهزاً لاختبارات المراجعة اليدوية."""
     user = User(
         full_name="موظف الاستقبال",
         email="employee@baradis.example",
@@ -99,6 +108,7 @@ def employee_user(db_session):
 
 @pytest.fixture()
 def customer_user(db_session):
+    """ينشئ حساب عميل (customer) جاهزاً لاختبارات الطلبات."""
     user = User(
         full_name="عميل تجريبي",
         email="customer@baradis.example",
@@ -114,6 +124,7 @@ def customer_user(db_session):
 
 @pytest.fixture()
 def sample_service(db_session):
+    """ينشئ خدمة تذكرة طيران أساسية (300 دولار) لاستخدامها في اختبارات الطلبات."""
     service = Service(
         category="flight",
         title="تذكرة الخرطوم - جدة",
@@ -127,6 +138,20 @@ def sample_service(db_session):
 
 
 def make_agent(db_session, payment_mode: PaymentMode, credit_limit=0, discount_rate=0, wallet_balance=0):
+    """
+    دالة مساعدة (وليست fixture) تنشئ حساب وكيل B2B بوضع دفع محدَّد،
+    لاستخدامها في اختبارات محفظة الوكلاء بالأوضاع الثلاثة.
+
+    Args:
+        db_session: جلسة قاعدة بيانات الاختبار.
+        payment_mode: وضع الدفع المطلوب اختباره.
+        credit_limit: الحد الائتماني الابتدائي.
+        discount_rate: نسبة الخصم الابتدائية.
+        wallet_balance: رصيد المحفظة الابتدائي.
+
+    Returns:
+        tuple[User, AgentProfile]: حساب المستخدم وملف الوكيل المرتبط به.
+    """
     user = User(
         full_name="وكيل تجريبي",
         email=f"agent-{payment_mode.value}@baradis.example",

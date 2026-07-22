@@ -1,3 +1,5 @@
+# File: alembic/env.py
+
 from logging.config import fileConfig
 
 from alembic import context
@@ -17,6 +19,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """ينفّذ الترحيلات في الوضع غير المتصل (يولّد SQL نصياً بلا اتصال فعلي بقاعدة البيانات)."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -29,6 +32,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """ينفّذ الترحيلات عبر اتصال فعلي بقاعدة البيانات المحدَّدة في DATABASE_URL."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

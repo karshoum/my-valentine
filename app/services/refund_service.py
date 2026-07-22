@@ -1,3 +1,5 @@
+# File: app/services/refund_service.py
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -11,6 +13,22 @@ from app.services import agent_service, audit_service, order_service, wallet_ser
 
 
 def create_refund_request(db: Session, order_id: int, current_user: User, payload: RefundCreateRequest) -> Refund:
+    """
+    ينشئ طلب استرداد جديداً بحالة pending لطلب قائم في مرحلة قابلة
+    للاسترداد.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        order_id: معرّف الطلب المُراد استرداده.
+        current_user: صاحب الطلب أو موظف/مدير.
+        payload: المبلغ المطلوب استرداده وسببه.
+
+    Returns:
+        Refund: طلب الاسترداد المُنشَأ بحالة pending.
+
+    Raises:
+        AppException: 400 إذا كانت حالة الطلب لا تسمح بطلب استرداد.
+    """
     order = order_service.get_order_with_access_check(db, order_id, current_user)
 
     if order.status not in (OrderStatus.processing, OrderStatus.in_system, OrderStatus.completed):
@@ -30,6 +48,7 @@ def create_refund_request(db: Session, order_id: int, current_user: User, payloa
 
 
 def get_refund_or_404(db: Session, refund_id: int) -> Refund:
+    """يجلب طلب استرداد بمعرّفه أو يرفع استثناء 404 إذا لم يوجد."""
     refund = db.query(Refund).filter(Refund.id == refund_id).first()
     if not refund:
         raise AppException("طلب الاسترداد غير موجود", status_code=404)
@@ -37,6 +56,20 @@ def get_refund_or_404(db: Session, refund_id: int) -> Refund:
 
 
 def approve_refund(db: Session, refund_id: int, admin_user: User) -> Refund:
+    """
+    يعتمد طلب استرداد معلَّقاً (خطوة لازمة قبل process_refund).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        refund_id: معرّف طلب الاسترداد.
+        admin_user: المدير الذي ينفّذ الاعتماد.
+
+    Returns:
+        Refund: طلب الاسترداد بحالة approved.
+
+    Raises:
+        AppException: 400 إذا كان الطلب قد رُوجِع مسبقاً.
+    """
     refund = get_refund_or_404(db, refund_id)
     if refund.status != RefundStatus.pending:
         raise AppException("تمت مراجعة طلب الاسترداد هذا مسبقاً", status_code=400)
@@ -51,6 +84,21 @@ def approve_refund(db: Session, refund_id: int, admin_user: User) -> Refund:
 
 
 def decline_refund(db: Session, refund_id: int, admin_user: User, notes: str | None) -> Refund:
+    """
+    يرفض طلب استرداد معلَّقاً مع ملاحظة اختيارية توضّح السبب.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        refund_id: معرّف طلب الاسترداد.
+        admin_user: المدير الذي ينفّذ الرفض.
+        notes: سبب الرفض (اختياري).
+
+    Returns:
+        Refund: طلب الاسترداد بحالة declined.
+
+    Raises:
+        AppException: 400 إذا كان الطلب قد رُوجِع مسبقاً.
+    """
     refund = get_refund_or_404(db, refund_id)
     if refund.status != RefundStatus.pending:
         raise AppException("تمت مراجعة طلب الاسترداد هذا مسبقاً", status_code=400)
@@ -71,9 +119,20 @@ def decline_refund(db: Session, refund_id: int, admin_user: User, notes: str | N
 
 def process_refund(db: Session, refund_id: int, admin_user: User) -> Refund:
     """
-    تنفيذ الاسترداد فعلياً: يغيّر حالة الطلب إلى refunded، وإن كان صاحب
-    الطلب وكيلاً (B2B) يُعاد المبلغ إلى محفظته مع تسجيل الحركة في
-    agent_wallet_logs.
+    ينفّذ استرداداً معتمَداً فعلياً: يغيّر حالة الطلب إلى refunded، وإن
+    كان صاحب الطلب وكيلاً (B2B) يُعاد المبلغ إلى محفظته مع تسجيل الحركة
+    في agent_wallet_logs.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        refund_id: معرّف طلب الاسترداد المعتمَد.
+        admin_user: المدير الذي ينفّذ التنفيذ.
+
+    Returns:
+        Refund: طلب الاسترداد بحالة processed.
+
+    Raises:
+        AppException: 400 إذا لم يكن الطلب معتمَداً مسبقاً (approved).
     """
     refund = get_refund_or_404(db, refund_id)
     if refund.status != RefundStatus.approved:

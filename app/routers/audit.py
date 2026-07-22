@@ -1,3 +1,5 @@
+# File: app/routers/audit.py
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -15,5 +17,6 @@ def list_audit_logs(
     limit: int = 100,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
-):
+) -> list[AuditLog]:
+    """يُعيد أحدث سجلات التدقيق (admin فقط)، محدودة بعدد limit."""
     return db.query(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit).all()
