@@ -10,19 +10,19 @@
 
 ## آخر حالة معروفة للمشروع
 
-- **الفرع النشط**: `claude/wakalat-baradise-project-7iwyup` (غُيِّر اسمه
-  — كان `claude/wakalat-bradis-project-7iwyup`؛ الفرع القديم لسه موجود
-  على GitHub كنسخة قديمة متروكة، لكن **كل العمل الجديد يجب أن يذهب
-  للفرع الجديد فقط**).
+- **الفرع النشط**: `claude/wakalat-baradise-project-7iwyup` (مرّ باسمين
+  قديمين قبل ما يستقر على هذا الإملاء الصحيح: `claude/wakalat-bradis-project-7iwyup`
+  ثم `claude/wakalat-baradais-project-7iwyup` — كلاهما متروك على GitHub
+  كنسخ قديمة غير مستخدَمة، لكن **كل العمل الجديد يجب أن يذهب للفرع
+  الحالي فقط**).
 - **مهمة لأي جلسة/جهاز آخر (خصوصاً الجهاز المحلي)**: إذا كان عندك
-  Checkout محلي على الفرع القديم `claude/wakalat-bradis-project-7iwyup`،
-  نفّذ:
+  Checkout محلي على أي من الاسمين القديمين أعلاه، نفّذ:
   ```bash
   git fetch origin
   git checkout -B claude/wakalat-baradise-project-7iwyup origin/claude/wakalat-baradise-project-7iwyup
   ```
-  وتابع العمل من الفرع الجديد فقط من الآن فصاعداً. لا تدفع أي شي جديد
-  على اسم الفرع القديم.
+  وتابع العمل من الفرع الحالي فقط من الآن فصاعداً. لا تدفع أي شي جديد
+  على أي اسم فرع قديم.
 - **JWT**: تمت الترقية من `python-jose` إلى `PyJWT==2.9.0` بالكامل
   (`app/core/security.py` فقط تأثّر — `create_access_token`/`decode_access_token`).
   لا أثر لـ `jose` في أي مكان آخر بالكود.
