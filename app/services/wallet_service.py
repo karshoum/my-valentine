@@ -69,6 +69,13 @@ def deduct_for_order(db: Session, agent: AgentProfile, order: Order) -> AgentWal
     """
     يخصم قيمة طلب من محفظة وكيل وفق وضع الدفع الخاص به.
 
+    يقفل صف الوكيل في قاعدة البيانات (SELECT ... FOR UPDATE) قبل فحص
+    الرصيد وخصمه، لمنع سباق تزامن: لو وصل طلبان لنفس الوكيل في نفس
+    اللحظة، كل واحد كان سيرى نفس الرصيد القديم ويمر فحص الكفاية بشكل
+    منفصل، فيتجاوز مجموع الخصمين الرصيد أو الحد الائتماني المسموح رغم
+    رفض كل طلب لو نُفِّذ منفرداً بعد الآخر. القفل يُحرَّر تلقائياً مع
+    commit/rollback الجلسة التي تستدعي هذه الدالة.
+
     Args:
         db: جلسة قاعدة البيانات.
         agent: ملف الوكيل صاحب الطلب.
@@ -89,18 +96,22 @@ def deduct_for_order(db: Session, agent: AgentProfile, order: Order) -> AgentWal
             status_code=400,
         )
 
-    if agent.payment_mode == PaymentMode.prepaid_wallet:
-        if agent.wallet_balance < amount:
+    locked_agent = (
+        db.query(AgentProfile).filter(AgentProfile.id == agent.id).populate_existing().with_for_update().one()
+    )
+
+    if locked_agent.payment_mode == PaymentMode.prepaid_wallet:
+        if locked_agent.wallet_balance < amount:
             raise AppException("رصيد المحفظة غير كافٍ لإتمام هذا الطلب", status_code=400)
 
-    elif agent.payment_mode == PaymentMode.credit_limit:
-        projected_balance = agent.wallet_balance - amount
-        if projected_balance < -agent.credit_limit:
+    elif locked_agent.payment_mode == PaymentMode.credit_limit:
+        projected_balance = locked_agent.wallet_balance - amount
+        if projected_balance < -locked_agent.credit_limit:
             raise AppException("تجاوزت الحد الائتماني المسموح لحسابك", status_code=400)
 
-    agent.wallet_balance = agent.wallet_balance - amount
+    locked_agent.wallet_balance = locked_agent.wallet_balance - amount
     log = AgentWalletLog(
-        agent_id=agent.id,
+        agent_id=locked_agent.id,
         transaction_type=WalletTransactionType.deduction,
         amount=amount,
         order_id=order.id,
