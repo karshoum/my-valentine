@@ -6,6 +6,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import ServiceCategory
+from app.schemas.service_requirement import ServiceRequirementOut
 
 
 class VisaResidencyDetailIn(BaseModel):
@@ -85,6 +86,7 @@ class ServiceOut(BaseModel):
     has_active_discount: bool
     effective_price_usd: Decimal
     visa_residency_detail: VisaResidencyDetailOut | None = None
+    requirements: list[ServiceRequirementOut] = []
 
 
 class ServicePriceOut(BaseModel):

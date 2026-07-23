@@ -1,18 +1,21 @@
 // File: frontend/src/components/layout/AppLayout.tsx
 
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 
-/** الهيكل العام لصفحات لوحة التحكم: قائمة جانبية + شريط علوي + محتوى الصفحة. */
+/** الهيكل العام لصفحات لوحة التحكم: قائمة جانبية (ثابتة على الحاسوب، منسدلة على الهاتف) + شريط علوي + محتوى الصفحة. */
 export function AppLayout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/50">
-      <Sidebar />
+      <Sidebar isMobileOpen={isMobileMenuOpen} onMobileClose={() => setIsMobileMenuOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <Topbar onMenuClick={() => setIsMobileMenuOpen(true)} />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

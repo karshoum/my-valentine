@@ -21,6 +21,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleLoginRequest(BaseModel):
+    """توكن الهوية (ID Token) الصادر من Google Identity Services في المتصفح."""
+
+    id_token: str = Field(min_length=10)
+
+
 class TokenResponse(BaseModel):
     """استجابة تسجيل الدخول الناجح: توكن JWT مع بيانات أساسية للمستخدم."""
 

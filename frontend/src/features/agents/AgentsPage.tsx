@@ -49,7 +49,7 @@ export function AgentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900">الوكلاء (B2B)</h1>
           <p className="text-sm text-slate-500">إدارة حسابات الفرانشايز، محافظهم، وأسعارهم الخاصة</p>

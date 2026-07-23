@@ -30,6 +30,12 @@ class Service(Base):
         "VisaResidencyDetail", back_populates="service", uselist=False, cascade="all, delete-orphan"
     )
     b2b_rates = relationship("B2BServiceRate", back_populates="service", cascade="all, delete-orphan")
+    requirements = relationship(
+        "ServiceRequirement",
+        back_populates="service",
+        cascade="all, delete-orphan",
+        order_by="ServiceRequirement.display_order",
+    )
 
     @property
     def has_active_discount(self) -> bool:

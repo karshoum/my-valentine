@@ -11,6 +11,7 @@ export interface AuthContextValue {
   role: UserRole | null;
   fullName: string | null;
   login: (credentials: LoginRequest) => Promise<void>;
+  loginWithGoogle: (googleIdToken: string) => Promise<void>;
   logout: () => void;
   /** يحدّث توكن الجلسة الحالية بدون إعادة تسجيل دخول (بعد تغيير كلمة المرور مثلاً). */
   refreshToken: (token: string) => void;

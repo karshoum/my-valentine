@@ -6,7 +6,7 @@ import { AuthContext, type AuthContextValue } from "@/features/auth/authContextV
 import { apiClient } from "@/lib/apiClient";
 import { clearAuthSession, getStoredFullName, getStoredRole, getStoredToken, saveAuthSession } from "@/lib/authStorage";
 import type { UserRole } from "@/types/enums";
-import type { LoginRequest, TokenResponse } from "@/types/user";
+import type { GoogleLoginRequest, LoginRequest, TokenResponse } from "@/types/user";
 
 /** يوفّر حالة المصادقة لكل شجرة المكوّنات، ويهيّئها من localStorage عند الإقلاع. */
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -16,6 +16,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (credentials: LoginRequest) => {
     const response = await apiClient.post<TokenResponse>("/api/v1/auth/login", credentials);
+    const { access_token, role: userRole, full_name } = response.data;
+    saveAuthSession(access_token, userRole, full_name);
+    setToken(access_token);
+    setRole(userRole);
+    setFullName(full_name);
+  }, []);
+
+  const loginWithGoogle = useCallback(async (googleIdToken: string) => {
+    const payload: GoogleLoginRequest = { id_token: googleIdToken };
+    const response = await apiClient.post<TokenResponse>("/api/v1/auth/google", payload);
     const { access_token, role: userRole, full_name } = response.data;
     saveAuthSession(access_token, userRole, full_name);
     setToken(access_token);
@@ -40,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<AuthContextValue>(
-    () => ({ isAuthenticated: Boolean(token), role, fullName, login, logout, refreshToken }),
-    [token, role, fullName, login, logout, refreshToken],
+    () => ({ isAuthenticated: Boolean(token), role, fullName, login, loginWithGoogle, logout, refreshToken }),
+    [token, role, fullName, login, loginWithGoogle, logout, refreshToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

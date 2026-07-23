@@ -20,7 +20,7 @@ from app.models.enums import OrderStatus, UserRole
 from app.models.order import Order, OrderPassenger, OrderStatusLog
 from app.models.user import User
 from app.schemas.order import OrderCreateRequest
-from app.services import agent_service, currency_service, service_service
+from app.services import agent_service, currency_service, email_service, service_service
 from app.services.wallet_service import deduct_for_order
 
 ALLOWED_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
@@ -100,6 +100,7 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
 
     db.commit()
     db.refresh(order)
+    email_service.send_order_confirmation_email(order)
     return order
 
 
@@ -197,4 +198,5 @@ def update_order_status(
     )
     db.commit()
     db.refresh(order)
+    email_service.send_order_status_update_email(order)
     return order

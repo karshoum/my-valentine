@@ -52,7 +52,7 @@ export function ProfilePage() {
           </div>
           <div>
             <p className="text-xs text-slate-500">رقم الهاتف</p>
-            <p className="mt-0.5 font-medium text-slate-800">{profile.phone}</p>
+            <p className="mt-0.5 font-medium text-slate-800">{profile.phone ?? "—"}</p>
           </div>
           <div>
             <p className="text-xs text-slate-500">تاريخ الانضمام</p>

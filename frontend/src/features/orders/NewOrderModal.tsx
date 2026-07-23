@@ -80,6 +80,17 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
           )}
         </div>
 
+        {selectedService && selectedService.requirements.length > 0 && (
+          <div className="rounded-xl border border-sky-200/80 bg-sky-50/60 p-3">
+            <p className="mb-1.5 text-sm font-medium text-sky-800">المستندات المطلوبة لهذه الخدمة</p>
+            <ul className="list-inside list-disc space-y-1 text-xs text-sky-700">
+              {selectedService.requirements.map((requirement) => (
+                <li key={requirement.id}>{requirement.requirement_text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">عملة السداد</label>
           <select

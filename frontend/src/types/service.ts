@@ -17,6 +17,26 @@ export interface VisaResidencyDetailOut extends VisaResidencyDetailIn {
   service_id: number;
 }
 
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementOut. */
+export interface ServiceRequirementOut {
+  id: number;
+  service_id: number;
+  requirement_text: string;
+  display_order: number;
+}
+
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementCreateRequest. */
+export interface ServiceRequirementCreateRequest {
+  requirement_text: string;
+  display_order: number;
+}
+
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementUpdateRequest. */
+export interface ServiceRequirementUpdateRequest {
+  requirement_text?: string;
+  display_order?: number;
+}
+
 /** مطابق لـ app.schemas.service.ServiceOut. */
 export interface ServiceOut {
   id: number;
@@ -31,6 +51,7 @@ export interface ServiceOut {
   has_active_discount: boolean;
   effective_price_usd: string;
   visa_residency_detail: VisaResidencyDetailOut | null;
+  requirements: ServiceRequirementOut[];
 }
 
 /** مطابق لـ app.schemas.service.ServiceCreateRequest. */

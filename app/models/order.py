@@ -36,6 +36,7 @@ class Order(Base):
     )
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
     refunds = relationship("Refund", back_populates="order", cascade="all, delete-orphan")
+    customer = relationship("User", foreign_keys=[user_id])
 
     @property
     def deliverable_signed_url(self) -> str | None:

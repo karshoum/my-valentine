@@ -1,6 +1,6 @@
 // File: frontend/src/features/services/ServicesTable.tsx
 
-import { Percent, Pencil, Trash2 } from "lucide-react";
+import { ClipboardList, Percent, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { FilterPill } from "@/components/ui/FilterPill";
@@ -11,6 +11,7 @@ import type { ServiceOut } from "@/types/service";
 interface ServicesTableProps {
   services: ServiceOut[];
   onEdit: (service: ServiceOut) => void;
+  onManageRequirements: (service: ServiceOut) => void;
   onSetDiscount: (service: ServiceOut) => void;
   onDelete: (service: ServiceOut) => void;
 }
@@ -20,7 +21,7 @@ interface ServicesTableProps {
  * لكل صف. زرا الخصم والحذف يظهران لحساب admin فقط (يطابق قيود الـ
  * backend: هذان الإجراءان محصوران بـ require_admin).
  */
-export function ServicesTable({ services, onEdit, onSetDiscount, onDelete }: ServicesTableProps) {
+export function ServicesTable({ services, onEdit, onManageRequirements, onSetDiscount, onDelete }: ServicesTableProps) {
   const { role } = useAuth();
   const isAdmin = role === "admin";
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -88,6 +89,14 @@ export function ServicesTable({ services, onEdit, onSetDiscount, onDelete }: Ser
                       className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
                     >
                       <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onManageRequirements(service)}
+                      title="متطلبات المستندات"
+                      className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-sky-50 hover:text-sky-700"
+                    >
+                      <ClipboardList size={15} />
                     </button>
                     {isAdmin && (
                       <>

@@ -4,6 +4,7 @@ import { LockKeyhole, LogIn, Phone } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
+import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
 import { useAuth } from "@/features/auth/useAuth";
 import { inputBaseClass } from "@/lib/designTokens";
 
@@ -91,6 +92,13 @@ export function LoginPage() {
             {isSubmitting ? "جارٍ الدخول..." : "تسجيل الدخول"}
           </button>
         </form>
+
+        <div className="mt-5">
+          <GoogleSignInButton
+            onError={setErrorMessage}
+            onSuccess={() => navigate("/", { replace: true })}
+          />
+        </div>
       </div>
     </div>
   );

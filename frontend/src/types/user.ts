@@ -7,7 +7,7 @@ export interface UserOut {
   id: number;
   full_name: string;
   email: string | null;
-  phone: string;
+  phone: string | null;
   role: UserRole;
   is_active: boolean;
   created_at: string;
@@ -25,6 +25,11 @@ export interface TokenResponse {
 export interface LoginRequest {
   identifier: string;
   password: string;
+}
+
+/** مطابق لـ app.schemas.auth.GoogleLoginRequest. */
+export interface GoogleLoginRequest {
+  id_token: string;
 }
 
 /** مطابق لـ app.schemas.user.PasswordChangeRequest. */

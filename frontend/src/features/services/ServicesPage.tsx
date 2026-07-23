@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CreateServiceModal } from "@/features/services/CreateServiceModal";
 import { DiscountModal } from "@/features/services/DiscountModal";
 import { EditServiceModal } from "@/features/services/EditServiceModal";
+import { ManageRequirementsModal } from "@/features/services/ManageRequirementsModal";
 import { ServicesTable } from "@/features/services/ServicesTable";
 import { useDeleteService } from "@/features/services/useDeleteService";
 import { useServicesForManagement } from "@/features/services/useServicesForManagement";
@@ -19,6 +20,7 @@ export function ServicesPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [serviceBeingEdited, setServiceBeingEdited] = useState<ServiceOut | null>(null);
+  const [serviceForRequirements, setServiceForRequirements] = useState<ServiceOut | null>(null);
   const [serviceForDiscount, setServiceForDiscount] = useState<ServiceOut | null>(null);
   const [serviceToDelete, setServiceToDelete] = useState<ServiceOut | null>(null);
 
@@ -41,7 +43,7 @@ export function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900">الخدمات</h1>
           <p className="text-sm text-slate-500">كتالوج خدمات الوكالة الكامل — إضافة، تعديل، تعطيل، حذف، وعروض خصم</p>
@@ -60,6 +62,7 @@ export function ServicesPage() {
       <ServicesTable
         services={services}
         onEdit={setServiceBeingEdited}
+        onManageRequirements={setServiceForRequirements}
         onSetDiscount={setServiceForDiscount}
         onDelete={setServiceToDelete}
       />
@@ -82,6 +85,17 @@ export function ServicesPage() {
             setServiceBeingEdited(null);
             refetch();
           }}
+        />
+      )}
+
+      {serviceForRequirements && (
+        <ManageRequirementsModal
+          service={serviceForRequirements}
+          onClose={() => {
+            setServiceForRequirements(null);
+            refetch();
+          }}
+          onChanged={() => refetch()}
         />
       )}
 
