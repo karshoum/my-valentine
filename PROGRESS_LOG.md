@@ -311,6 +311,21 @@
     `tests/test_email_service.py` (بنية MIME تغيّرت من نص عادي لـ
     multipart/related، أضفت اختبار تحميل الشعار) — **83/83 اختبار
     ناجح**. `npm run build`/`oxlint`/`tsc --noEmit` نظيفة.
+- **🔴 إصلاح حرج آخر (نشر Railway، بعد إصلاح 0003)**: ترحيل
+  `0008_add_flight_booking_tables` كان يفشل بـ
+  `psycopg2.errors.DuplicateObject: type "flight_booking_fee_type" already exists`
+  أثناء `alembic upgrade head` على PostgreSQL حقيقي. السبب: عرّف
+  `flight_booking_fee_type = sa.Enum(...)` بلا `create_type=False`، فـ
+  `.create(checkfirst=True)` اليدوي بالسطر الأول من `upgrade()` أنشأ
+  النوع، ثم `op.create_table()` بعده حاول يُنشئه **مرة ثانية** تلقائياً
+  (لأن Enum بدون `create_type=False` يُصدر DDL خاص به عند إنشاء أي جدول
+  يستخدمه) — هذا هو نفس النمط المستخدَم بشكل صحيح في كل الأنواع بملف
+  `0001_initial_schema.py` (كلها `create_type=False`)، فقط 0008 نسيتها.
+  تم إصلاحها بإضافة `create_type=False`. **لأن المحاولة الفاشلة سبقها
+  فعلياً أنشأت النوع في قاعدة بيانات Railway الحقيقية قبل ما تفشل**، لا
+  حاجة لأي تصحيح SQL يدوي — `checkfirst=True` الموجود أصلاً سيتجاوزه
+  بصمت، و`create_type=False` يمنع تكرار المحاولة عند إنشاء الجدول. فقط
+  ادفعوا هذا الإصلاح وأعيدوا محاولة النشر.
 - **آخر commit مدفوع**: انظر أعلى "السجل الزمني" أدناه.
 
 ## 🔴 مطلوب من الجهاز المحلي الآن (لا يمكن إنجازها من الجلسة السحابية)
@@ -427,6 +442,24 @@ alembic upgrade head              # 3 ترحيلات جديدة: 0006 (متطل�
 
 ## السجل الزمني (أضف سطراً جديداً في الأعلى، لا تحذف القديم)
 
+- **2026-07-24 — جلسة سحابية (إصلاح باگ ثانٍ في النشر: تكرار CREATE TYPE
+  في ترحيل Alembic)**: بعد إصلاح باگ طول معرّف الترحيل `0003` (مذكور
+  بالسطر التالي)، أعاد المستخدم محاولة نشر Railway ووصل لخطوة لاحقة، لكن
+  `alembic upgrade head` فشل هذه المرة برسالة
+  `psycopg2.errors.DuplicateObject: type "flight_booking_fee_type" already exists`
+  أثناء تنفيذ ترحيل `0008_add_flight_booking_tables`. السبب: عرّف
+  `flight_booking_fee_type = sa.Enum(...)` بلا `create_type=False`، فـ
+  `.create(checkfirst=True)` اليدوي بأول سطر من `upgrade()` أنشأ النوع
+  بنجاح، ثم `op.create_table()` بعده حاول ينشئه **مرة ثانية** تلقائياً
+  (لأن أي `Enum` بدون `create_type=False` يصدر DDL خاص به أيضاً عند
+  إنشاء أي جدول يستخدمه) — نفس النمط الصحيح المستخدَم بكل أنواع
+  `0001_initial_schema.py` (`create_type=False` في كل واحد منها)، فقط
+  0008 نسيتها. أصلحته بإضافة `create_type=False`. تفصيلة مهمة: المحاولة
+  الفاشلة سبق ونجحت فعلياً بإنشاء النوع في قاعدة Railway الحقيقية قبل ما
+  تفشل على الجدول، لكن **لا حاجة لأي تصحيح SQL يدوي** هذه المرة —
+  `checkfirst=True` الموجود أصلاً بالكود سيتجاوز النوع الموجود بصمت،
+  و`create_type=False` يمنع محاولة الإنشاء المكرر عند إنشاء الجدول.
+  التالي: دفع هذا الإصلاح وإعادة محاولة نشر Railway.
 - **2026-07-24 — جلسة سحابية (محاولة النشر التجريبي: Render → Railway، وإصلاح
   باگ حقيقي في معرّف ترحيل Alembic)**: المستخدم طلب نشر نسخة تجريبية حقيقية
   للعرض على المدير. المحاولة الأولى عبر Render Blueprint (`render.yaml`)

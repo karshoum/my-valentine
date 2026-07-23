@@ -23,7 +23,9 @@ down_revision = "0007_add_google_login_support"
 branch_labels = None
 depends_on = None
 
-flight_booking_fee_type = sa.Enum("flat", "percentage", name="flight_booking_fee_type")
+flight_booking_fee_type = sa.Enum(
+    "flat", "percentage", name="flight_booking_fee_type", create_type=False
+)
 
 
 def upgrade() -> None:
