@@ -16,12 +16,15 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
 from app.models.agent import AgentProfile
-from app.models.enums import OrderStatus, UserRole
+from app.models.enums import OrderStatus, ServiceCategory, UserRole
+from app.models.flight_booking import FlightBookingDetail
 from app.models.order import Order, OrderPassenger, OrderStatusLog
 from app.models.user import User
 from app.schemas.order import OrderCreateRequest
-from app.services import agent_service, currency_service, email_service, service_service
+from app.services import agent_service, currency_service, email_service, flight_booking_service, service_service
 from app.services.wallet_service import deduct_for_order
+
+_FLIGHT_BOOKING_CATEGORIES = (ServiceCategory.flight, ServiceCategory.ship_ticket)
 
 ALLOWED_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
     OrderStatus.pending: {OrderStatus.processing, OrderStatus.rejected},
@@ -55,18 +58,31 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
         Order: الطلب المُنشَأ حديثاً مع مسافريه وسجل حالته الأول.
 
     Raises:
-        AppException: 400 إذا كانت الخدمة غير مفعَّلة، أو إذا فشل خصم
-        محفظة الوكيل (رصيد/حد ائتماني غير كافٍ).
+        AppException: 400 إذا كانت الخدمة غير مفعَّلة، إذا كانت خدمة
+        تذاكر طيران/بواخر بلا بيانات رحلة مرفَقة (أو العكس)، أو إذا فشل
+        خصم محفظة الوكيل (رصيد/حد ائتماني غير كافٍ).
     """
     service = service_service.get_service_or_404(db, payload.service_id)
     if not service.is_active:
         raise AppException("هذه الخدمة غير متاحة حالياً", status_code=400)
 
+    is_flight_booking_category = service.category in _FLIGHT_BOOKING_CATEGORIES
+    if is_flight_booking_category and not payload.flight_booking:
+        raise AppException("بيانات الرحلة المختارة مطلوبة لهذا النوع من الخدمات", status_code=400)
+    if not is_flight_booking_category and payload.flight_booking:
+        raise AppException("بيانات الرحلة تُرسَل فقط لخدمات تذاكر الطيران/البواخر", status_code=400)
+
     agent: AgentProfile | None = None
     if current_user.role == UserRole.agent:
         agent = agent_service.get_agent_by_user_or_404(db, current_user.id)
 
-    price_usd = agent_service.get_effective_price_usd(db, service, agent)
+    if payload.flight_booking:
+        fee_setting = flight_booking_service.get_current_fee_setting(db)
+        fee_amount_usd = flight_booking_service.calculate_fee_amount(payload.flight_booking.base_fare_usd, fee_setting)
+        price_usd = payload.flight_booking.base_fare_usd + fee_amount_usd
+    else:
+        price_usd = agent_service.get_effective_price_usd(db, service, agent)
+
     total_amount = currency_service.convert_usd_to(db, price_usd, payload.currency_code)
 
     order = Order(
@@ -76,12 +92,27 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
         total_amount=total_amount,
         currency_code=payload.currency_code.upper(),
         status=OrderStatus.pending,
+        contact_whatsapp=payload.contact_whatsapp,
     )
     db.add(order)
     db.flush()
 
     for passenger in payload.passengers:
         db.add(OrderPassenger(order_id=order.id, **passenger.model_dump()))
+
+    if payload.flight_booking:
+        db.add(
+            FlightBookingDetail(
+                order_id=order.id,
+                origin=payload.flight_booking.origin.upper(),
+                destination=payload.flight_booking.destination.upper(),
+                departure_date=payload.flight_booking.departure_date,
+                return_date=payload.flight_booking.return_date,
+                airline_name=payload.flight_booking.airline_name,
+                base_fare_usd=payload.flight_booking.base_fare_usd,
+                fee_amount_usd=fee_amount_usd,
+            )
+        )
 
     db.add(
         OrderStatusLog(

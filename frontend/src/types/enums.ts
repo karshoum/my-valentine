@@ -43,3 +43,6 @@ export type WalletTransactionType = "deposit" | "deduction" | "refund";
 
 /** مطابق لـ app.models.enums.LeadServiceType. */
 export type LeadServiceType = "logistics" | "media_ads";
+
+/** مطابق لـ app.models.enums.FlightBookingFeeType. */
+export type FlightBookingFeeType = "flat" | "percentage";

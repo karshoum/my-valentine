@@ -16,6 +16,7 @@ def test_create_order_computes_total_in_target_currency(db_session, usd_currency
     payload = OrderCreateRequest(
         service_id=sample_service.id,
         currency_code="SDG",
+        contact_whatsapp="0911112222",
         passengers=[OrderPassengerIn(full_name="محمد أحمد", passport_number="P123456")],
     )
 
@@ -34,6 +35,7 @@ def test_valid_status_transition_pending_to_processing(db_session, usd_currency,
     payload = OrderCreateRequest(
         service_id=sample_service.id,
         currency_code="USD",
+        contact_whatsapp="0911112222",
         passengers=[OrderPassengerIn(full_name="فاطمة علي")],
     )
     order = order_service.create_order(db_session, customer_user, payload)
@@ -53,6 +55,7 @@ def test_invalid_status_transition_raises(db_session, usd_currency, customer_use
     payload = OrderCreateRequest(
         service_id=sample_service.id,
         currency_code="USD",
+        contact_whatsapp="0911112222",
         passengers=[OrderPassengerIn(full_name="فاطمة علي")],
     )
     order = order_service.create_order(db_session, customer_user, payload)
@@ -81,6 +84,7 @@ def test_customer_cannot_access_other_customer_order(db_session, usd_currency, c
     payload = OrderCreateRequest(
         service_id=sample_service.id,
         currency_code="USD",
+        contact_whatsapp="0911112222",
         passengers=[OrderPassengerIn(full_name="فاطمة علي")],
     )
     order = order_service.create_order(db_session, customer_user, payload)

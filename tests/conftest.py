@@ -125,10 +125,14 @@ def customer_user(db_session):
 
 @pytest.fixture()
 def sample_service(db_session):
-    """ينشئ خدمة تذكرة طيران أساسية (300 دولار) لاستخدامها في اختبارات الطلبات."""
+    """
+    ينشئ خدمة عامة أساسية (300 دولار) لاستخدامها في اختبارات الطلبات
+    التي لا تتعلق تحديداً بحجوزات الطيران/البواخر (تلك لها فيكستشرات
+    وبيانات flight_booking منفصلة - انظر tests/test_order_service.py).
+    """
     service = Service(
-        category="flight",
-        title="تذكرة الخرطوم - جدة",
+        category="insurance",
+        title="تأمين سفر أساسي",
         base_price_usd=300,
         is_active=True,
     )

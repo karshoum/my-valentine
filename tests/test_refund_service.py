@@ -18,6 +18,7 @@ def _make_processing_order(db_session, user, sample_service):
     payload = OrderCreateRequest(
         service_id=sample_service.id,
         currency_code="USD",
+        contact_whatsapp="0911112222",
         passengers=[OrderPassengerIn(full_name="فاطمة علي")],
     )
     order = order_service.create_order(db_session, user, payload)

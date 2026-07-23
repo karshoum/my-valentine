@@ -14,6 +14,7 @@ from app.routers import (
     auth,
     currencies,
     files,
+    flight_bookings,
     leads,
     orders,
     payments,
@@ -74,6 +75,7 @@ app.include_router(agents.router)
 app.include_router(currencies.router)
 app.include_router(services.router)
 app.include_router(orders.router)
+app.include_router(flight_bookings.router)
 app.include_router(payments.router)
 app.include_router(refunds.router)
 app.include_router(leads.router)

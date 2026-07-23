@@ -8,6 +8,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { AgentsPage } from "@/features/agents/AgentsPage";
 import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { BookingFeeSettingsPage } from "@/features/flights/BookingFeeSettingsPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
 import { PaymentsPage } from "@/features/payments/PaymentsPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "refunds", element: <RefundsPage /> },
       { path: "services", element: <ServicesPage /> },
       { path: "currencies", element: <CurrenciesPage /> },
+      { path: "flight-booking-fee", element: <BookingFeeSettingsPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },

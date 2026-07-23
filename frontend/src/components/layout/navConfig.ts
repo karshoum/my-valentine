@@ -1,6 +1,16 @@
 // File: frontend/src/components/layout/navConfig.ts
 
-import { CircleUser, CreditCard, LayoutDashboard, PlaneTakeoff, RotateCcw, Tag, Users2, Wallet } from "lucide-react";
+import {
+  Banknote,
+  CircleUser,
+  CreditCard,
+  LayoutDashboard,
+  PlaneTakeoff,
+  RotateCcw,
+  Tag,
+  Users2,
+  Wallet,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import type { UserRole } from "@/types/enums";
@@ -54,6 +64,12 @@ export const navItems: NavItem[] = [
     label: "العملات وسعر الصرف",
     path: "/currencies",
     icon: Wallet,
+    allowedRoles: ["admin"],
+  },
+  {
+    label: "رسوم الحجز",
+    path: "/flight-booking-fee",
+    icon: Banknote,
     allowedRoles: ["admin"],
   },
   {

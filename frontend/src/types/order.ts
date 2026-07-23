@@ -1,6 +1,7 @@
 // File: frontend/src/types/order.ts
 
 import type { OrderStatus } from "@/types/enums";
+import type { FlightBookingCreateRequest, FlightBookingDetailOut } from "@/types/flightBooking";
 import type { RefundOut } from "@/types/refund";
 
 /** مطابق لـ app.schemas.order.OrderPassengerIn. */
@@ -14,6 +15,8 @@ export interface OrderCreateRequest {
   service_id: number;
   currency_code: string;
   passengers: OrderPassengerIn[];
+  contact_whatsapp: string;
+  flight_booking?: FlightBookingCreateRequest | null;
 }
 
 /** مطابق لـ app.schemas.order.OrderPassengerOut. */
@@ -51,7 +54,9 @@ export interface OrderOut {
   status: OrderStatus;
   created_at: string;
   deliverable_signed_url: string | null;
+  contact_whatsapp: string | null;
   passengers: OrderPassengerOut[];
   status_logs: OrderStatusLogOut[];
   refunds: RefundOut[];
+  flight_booking_detail: FlightBookingDetailOut | null;
 }

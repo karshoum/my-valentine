@@ -85,6 +85,13 @@ class WalletTransactionType(str, enum.Enum):
     refund = "refund"
 
 
+class FlightBookingFeeType(str, enum.Enum):
+    """طريقة احتساب رسوم حجز الطيران فوق سعر التذكرة الحقيقي."""
+
+    flat = "flat"
+    percentage = "percentage"
+
+
 class LeadServiceType(str, enum.Enum):
     """أنواع طلبات الاهتمام (Leads) للخدمات المستقبلية."""
 

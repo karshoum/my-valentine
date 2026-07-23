@@ -59,6 +59,26 @@ export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetail
           <StatusBadge status={order.status} />
         </div>
 
+        {(order.flight_booking_detail || order.contact_whatsapp) && (
+          <section className="mb-6 space-y-2">
+            {order.flight_booking_detail && (
+              <div className="rounded-xl border border-sky-200/80 bg-sky-50/60 p-3 text-sm">
+                <p className="font-medium text-sky-800">
+                  {order.flight_booking_detail.airline_name}: {order.flight_booking_detail.origin} →{" "}
+                  {order.flight_booking_detail.destination}
+                </p>
+                <p className="mt-1 text-xs text-sky-700">
+                  تاريخ الذهاب: {order.flight_booking_detail.departure_date} · سعر التذكرة الحقيقي: $
+                  {order.flight_booking_detail.base_fare_usd} · رسوم الحجز: ${order.flight_booking_detail.fee_amount_usd}
+                </p>
+              </div>
+            )}
+            {order.contact_whatsapp && (
+              <p className="text-xs text-slate-500">رقم واتساب للتواصل: {order.contact_whatsapp}</p>
+            )}
+          </section>
+        )}
+
         <section className="mb-6">
           <h3 className="mb-3 text-sm font-semibold text-slate-700">المسافرون ({order.passengers.length})</h3>
           <div className="space-y-2">

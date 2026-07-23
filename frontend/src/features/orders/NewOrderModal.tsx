@@ -5,9 +5,12 @@ import { useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
 import { useCurrencies } from "@/features/currencies/useCurrencies";
+import { FlightSearchSection } from "@/features/flights/FlightSearchSection";
+import { SelectedFlightCard } from "@/features/flights/SelectedFlightCard";
 import { useCreateOrder } from "@/features/orders/useCreateOrder";
 import { useServices } from "@/features/services/useServices";
 import { inputBaseClass } from "@/lib/designTokens";
+import type { FlightOfferOut } from "@/types/flightBooking";
 import type { OrderPassengerIn, OrderOut } from "@/types/order";
 
 interface NewOrderModalProps {
@@ -15,9 +18,10 @@ interface NewOrderModalProps {
   onCreated: (order: OrderOut) => void;
 }
 
+const FLIGHT_BOOKING_CATEGORIES = new Set(["flight", "ship_ticket"]);
 const emptyPassenger: OrderPassengerIn = { full_name: "", passport_number: null };
 
-/** نموذج إنشاء طلب جديد: اختيار خدمة وعملة السداد، وإدخال بيانات مسافر واحد أو أكثر. */
+/** نموذج إنشاء طلب جديد: اختيار خدمة، بحث/اختيار رحلة إن لزم، وإدخال بيانات المسافرين ورقم واتساب للتواصل. */
 export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
   const { services, isLoading: isLoadingServices } = useServices();
   const { currencies, isLoading: isLoadingCurrencies } = useCurrencies();
@@ -26,8 +30,11 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
   const [serviceId, setServiceId] = useState<number | "">("");
   const [currencyCode, setCurrencyCode] = useState("USD");
   const [passengers, setPassengers] = useState<OrderPassengerIn[]>([{ ...emptyPassenger }]);
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
+  const [selectedFlightOffer, setSelectedFlightOffer] = useState<FlightOfferOut | null>(null);
 
   const selectedService = services.find((service) => service.id === serviceId);
+  const requiresFlightBooking = Boolean(selectedService && FLIGHT_BOOKING_CATEGORIES.has(selectedService.category));
 
   const updatePassenger = (index: number, field: keyof OrderPassengerIn, value: string) => {
     setPassengers((current) =>
@@ -40,17 +47,32 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
     setPassengers((current) => current.filter((_, i) => i !== index));
 
   const canSubmit =
-    serviceId !== "" && currencyCode && passengers.every((passenger) => passenger.full_name.trim().length >= 2);
+    serviceId !== "" &&
+    currencyCode &&
+    contactWhatsapp.trim().length >= 8 &&
+    passengers.every((passenger) => passenger.full_name.trim().length >= 2) &&
+    (!requiresFlightBooking || selectedFlightOffer !== null);
 
   const handleSubmit = async () => {
     if (serviceId === "") return;
     const order = await createOrder({
       service_id: serviceId,
       currency_code: currencyCode,
+      contact_whatsapp: contactWhatsapp.trim(),
       passengers: passengers.map((passenger) => ({
         full_name: passenger.full_name.trim(),
         passport_number: passenger.passport_number?.trim() || null,
       })),
+      flight_booking: selectedFlightOffer
+        ? {
+            origin: selectedFlightOffer.origin,
+            destination: selectedFlightOffer.destination,
+            departure_date: selectedFlightOffer.departure_at.slice(0, 10),
+            return_date: null,
+            airline_name: selectedFlightOffer.airline_name,
+            base_fare_usd: selectedFlightOffer.base_fare_usd,
+          }
+        : undefined,
     });
     if (order) onCreated(order);
   };
@@ -62,14 +84,18 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
           <label className="mb-1.5 block text-sm font-medium text-slate-700">الخدمة</label>
           <select
             value={serviceId}
-            onChange={(event) => setServiceId(event.target.value ? Number(event.target.value) : "")}
+            onChange={(event) => {
+              setServiceId(event.target.value ? Number(event.target.value) : "");
+              setSelectedFlightOffer(null);
+            }}
             disabled={isLoadingServices}
             className={`w-full ${inputBaseClass}`}
           >
             <option value="">اختر خدمة...</option>
             {services.map((service) => (
               <option key={service.id} value={service.id}>
-                {service.title} — ${service.effective_price_usd}
+                {service.title}
+                {!FLIGHT_BOOKING_CATEGORIES.has(service.category) ? ` — $${service.effective_price_usd}` : ""}
               </option>
             ))}
           </select>
@@ -91,6 +117,13 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
           </div>
         )}
 
+        {requiresFlightBooking &&
+          (selectedFlightOffer ? (
+            <SelectedFlightCard offer={selectedFlightOffer} onChangeFlight={() => setSelectedFlightOffer(null)} />
+          ) : (
+            <FlightSearchSection onOfferSelected={setSelectedFlightOffer} />
+          ))}
+
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">عملة السداد</label>
           <select
@@ -105,6 +138,17 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">رقم واتساب للتواصل</label>
+          <input
+            value={contactWhatsapp}
+            onChange={(event) => setContactWhatsapp(event.target.value)}
+            placeholder="09xxxxxxxx"
+            className={`w-full ${inputBaseClass}`}
+          />
+          <p className="mt-1 text-xs text-slate-500">يستخدمه الموظف للتواصل معك مباشرة عند وجود مستجدات على طلبك.</p>
         </div>
 
         <div>

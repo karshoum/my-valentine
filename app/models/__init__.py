@@ -9,6 +9,7 @@ from app.models.currency import Currency  # noqa: F401
 from app.models.service import Service, VisaResidencyDetail, B2BServiceRate  # noqa: F401
 from app.models.service_requirement import ServiceRequirement  # noqa: F401
 from app.models.order import Order, OrderPassenger, OrderStatusLog  # noqa: F401
+from app.models.flight_booking import FlightBookingDetail, FlightBookingFeeSetting  # noqa: F401
 from app.models.payment import Payment  # noqa: F401
 from app.models.refund import Refund  # noqa: F401
 from app.models.wallet import AgentWalletLog  # noqa: F401

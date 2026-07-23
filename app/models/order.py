@@ -26,6 +26,7 @@ class Order(Base):
     status = Column(Enum(OrderStatus, name="order_status"), default=OrderStatus.pending, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     deliverable_file_url = Column(String(255), nullable=True)
+    contact_whatsapp = Column(String(20), nullable=True)
 
     passengers = relationship("OrderPassenger", back_populates="order", cascade="all, delete-orphan")
     status_logs = relationship(
@@ -37,6 +38,9 @@ class Order(Base):
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
     refunds = relationship("Refund", back_populates="order", cascade="all, delete-orphan")
     customer = relationship("User", foreign_keys=[user_id])
+    flight_booking_detail = relationship(
+        "FlightBookingDetail", back_populates="order", uselist=False, cascade="all, delete-orphan"
+    )
 
     @property
     def deliverable_signed_url(self) -> str | None:

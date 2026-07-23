@@ -6,6 +6,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import OrderStatus
+from app.schemas.flight_booking import FlightBookingCreateRequest, FlightBookingDetailOut
 from app.schemas.refund import RefundOut
 
 
@@ -28,11 +29,17 @@ class OrderPassengerOut(BaseModel):
 
 
 class OrderCreateRequest(BaseModel):
-    """بيانات إنشاء طلب جديد: الخدمة، عملة السداد، وقائمة المسافرين."""
+    """
+    بيانات إنشاء طلب جديد: الخدمة، عملة السداد، قائمة المسافرين، ورقم
+    واتساب للتواصل. لخدمات تصنيف تذاكر الطيران/البواخر، يجب إرفاق
+    flight_booking (الرحلة المختارة من نتائج البحث).
+    """
 
     service_id: int
     currency_code: str = Field(min_length=2, max_length=5)
     passengers: list[OrderPassengerIn] = Field(min_length=1)
+    contact_whatsapp: str = Field(min_length=8, max_length=20)
+    flight_booking: FlightBookingCreateRequest | None = None
 
 
 class OrderStatusUpdateRequest(BaseModel):
@@ -69,6 +76,8 @@ class OrderOut(BaseModel):
     status: OrderStatus
     created_at: datetime
     deliverable_signed_url: str | None = None
+    contact_whatsapp: str | None
     passengers: list[OrderPassengerOut] = []
     status_logs: list[OrderStatusLogOut] = []
     refunds: list[RefundOut] = []
+    flight_booking_detail: FlightBookingDetailOut | None = None
