@@ -2,9 +2,9 @@
 
 import type { UserRole } from "@/types/enums";
 
-const TOKEN_KEY = "baradais_access_token";
-const ROLE_KEY = "baradais_user_role";
-const NAME_KEY = "baradais_user_name";
+const TOKEN_KEY = "baradise_access_token";
+const ROLE_KEY = "baradise_user_role";
+const NAME_KEY = "baradise_user_name";
 
 /** يحفظ بيانات جلسة الدخول (التوكن والدور والاسم) في localStorage. */
 export function saveAuthSession(token: string, role: UserRole, fullName: string): void {

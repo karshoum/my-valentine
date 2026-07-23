@@ -10,7 +10,7 @@
 
 ## آخر حالة معروفة للمشروع
 
-- **الفرع النشط**: `claude/wakalat-baradais-project-7iwyup` (غُيِّر اسمه
+- **الفرع النشط**: `claude/wakalat-baradise-project-7iwyup` (غُيِّر اسمه
   — كان `claude/wakalat-bradis-project-7iwyup`؛ الفرع القديم لسه موجود
   على GitHub كنسخة قديمة متروكة، لكن **كل العمل الجديد يجب أن يذهب
   للفرع الجديد فقط**).
@@ -19,7 +19,7 @@
   نفّذ:
   ```bash
   git fetch origin
-  git checkout -B claude/wakalat-baradais-project-7iwyup origin/claude/wakalat-baradais-project-7iwyup
+  git checkout -B claude/wakalat-baradise-project-7iwyup origin/claude/wakalat-baradise-project-7iwyup
   ```
   وتابع العمل من الفرع الجديد فقط من الآن فصاعداً. لا تدفع أي شي جديد
   على اسم الفرع القديم.
@@ -309,13 +309,13 @@
    (إنشاء الطلب + رفع الدفع) وشاشتي المدفوعات والمستردات.
 
 6. **[تنظيف بيانات اختبار]** أثناء الاختبار الحي لدورة حياة الطلب،
-   سجّلت حساب عميل تجريبي `walkthrough-customer@baradais.example`
+   سجّلت حساب عميل تجريبي `walkthrough-customer@baradise.example`
    (هاتف `0955555501`) وطلبات/مدفوعات تجريبية عليه في قاعدة البيانات
    المحلية على هذا الجهاز فقط (ليس على أي بيئة مشتركة). كمان أثناء
-   اختبار إبطال الجلسات سابقاً أنشأت `harden-test@baradais.example`
+   اختبار إبطال الجلسات سابقاً أنشأت `harden-test@baradise.example`
    (هاتف `0966666601`). احذفهما لو حبيت تنظيف بيانات الاختبار، غير
    ضروري تقنياً. أضفت أثناء اختبار شاشة المستردات كمان
-   `refund-customer@baradais.example` (هاتف `0955555502`) بنفس المستوى
+   `refund-customer@baradise.example` (هاتف `0955555502`) بنفس المستوى
    من عدم الأهمية.
 
 ---

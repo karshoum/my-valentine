@@ -41,7 +41,7 @@ def test_google_login_creates_new_customer_on_first_login(db_session, monkeypatc
     monkeypatch.setattr(
         auth_service.google_id_token,
         "verify_oauth2_token",
-        lambda *a, **k: _fake_claims("google-sub-1", "new-google-user@baradais.example", "مستخدم قوقل جديد"),
+        lambda *a, **k: _fake_claims("google-sub-1", "new-google-user@baradise.example", "مستخدم قوقل جديد"),
     )
 
     response = auth_service.authenticate_with_google(db_session, GoogleLoginRequest(id_token="valid-token"))
@@ -49,7 +49,7 @@ def test_google_login_creates_new_customer_on_first_login(db_session, monkeypatc
     assert response.role == UserRole.customer
     created = db_session.query(User).filter(User.google_id == "google-sub-1").first()
     assert created is not None
-    assert created.email == "new-google-user@baradais.example"
+    assert created.email == "new-google-user@baradise.example"
     assert created.password_hash is None
     assert created.phone is None
 

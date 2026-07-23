@@ -7,15 +7,15 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: baradais_user
-      POSTGRES_PASSWORD: baradais_password
-      POSTGRES_DB: wakalat_baradais
+      POSTGRES_USER: baradise_user
+      POSTGRES_PASSWORD: baradise_password
+      POSTGRES_DB: wakalat_baradise
     ports:
       - "5432:5432"
     volumes:
-      - baradais_pg_data:/var/lib/postgresql/data
+      - baradise_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U baradais_user -d wakalat_baradais"]
+      test: ["CMD-SHELL", "pg_isready -U baradise_user -d wakalat_baradise"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,7 +27,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://baradais_user:baradais_password@db:5432/wakalat_baradais
+      DATABASE_URL: postgresql://baradise_user:baradise_password@db:5432/wakalat_baradise
       JWT_SECRET_KEY: change_this_to_a_long_random_secret
       SIGNED_URL_SECRET: change_this_signed_url_secret
       CORS_ORIGINS: '["http://localhost:3000"]'
@@ -42,4 +42,4 @@ services:
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 volumes:
-  baradais_pg_data:
+  baradise_pg_data:

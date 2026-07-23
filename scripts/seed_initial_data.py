@@ -44,7 +44,7 @@ def seed_currencies(db: Session) -> None:
 
 def seed_admin(db: Session) -> None:
     """ينشئ حساب مدير افتراضياً واحداً إذا لم يوجد أي حساب admin بعد."""
-    email = os.getenv("ADMIN_EMAIL", "admin@wakalat-baradais.com")
+    email = os.getenv("ADMIN_EMAIL", "admin@wakalat-baradise.com")
     phone = os.getenv("ADMIN_PHONE", "0900000000")
     password = os.getenv("ADMIN_PASSWORD", "ChangeMe@2026")
 
