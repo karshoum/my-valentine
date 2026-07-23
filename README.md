@@ -1,4 +1,4 @@
-# وكالة براديس — منصة السفر والسياحة والخدمات (B2C & B2B)
+# وكالة برادايس — منصة السفر والسياحة والخدمات (B2C & B2B)
 
 نظام خلفي (Backend API) متكامل لوكالة سفر وسياحة وخدمات أعمال، مبني بـ
 **FastAPI** و **PostgreSQL** باستخدام معمارية طبقات نظيفة (Clean
@@ -97,7 +97,7 @@ docker compose up --build
 `http://localhost:8000/docs`.
 
 بيانات المدير الافتراضي (يجب تغييرها فوراً): البريد
-`admin@wakalat-baradis.com`، كلمة المرور `ChangeMe@2026` (أو القيم التي
+`admin@wakalat-baradais.com`، كلمة المرور `ChangeMe@2026` (أو القيم التي
 تحددها عبر متغيرات البيئة `ADMIN_EMAIL` / `ADMIN_PHONE` /
 `ADMIN_PASSWORD`).
 

@@ -1,7 +1,7 @@
 # File: scripts/seed_initial_data.py
 
 """
-تهيئة البيانات الأساسية لمنصة وكالة براديس بعد تشغيل الترحيلات
+تهيئة البيانات الأساسية لمنصة وكالة برادايس بعد تشغيل الترحيلات
 (alembic upgrade head) على قاعدة بيانات فارغة: العملات الأساسية وحساب
 مدير افتراضي واحد.
 
@@ -44,7 +44,7 @@ def seed_currencies(db: Session) -> None:
 
 def seed_admin(db: Session) -> None:
     """ينشئ حساب مدير افتراضياً واحداً إذا لم يوجد أي حساب admin بعد."""
-    email = os.getenv("ADMIN_EMAIL", "admin@wakalat-baradis.com")
+    email = os.getenv("ADMIN_EMAIL", "admin@wakalat-baradais.com")
     phone = os.getenv("ADMIN_PHONE", "0900000000")
     password = os.getenv("ADMIN_PASSWORD", "ChangeMe@2026")
 

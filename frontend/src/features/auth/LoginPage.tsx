@@ -42,7 +42,7 @@ export function LoginPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
             <LogIn size={28} />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">وكالة براديس</h1>
+          <h1 className="text-xl font-bold text-slate-900">وكالة برادايس</h1>
           <p className="mt-1 text-sm text-slate-500">سجّل دخولك للمتابعة إلى لوحة التحكم</p>
         </div>
 

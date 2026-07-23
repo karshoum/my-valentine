@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ضمنية (مثال: CORS مفتوح للجميع).
     """
 
-    APP_NAME: str = "Wakalat Baradis Platform"
+    APP_NAME: str = "Wakalat Baradais Platform"
     ENVIRONMENT: str = "development"
 
     DATABASE_URL: str

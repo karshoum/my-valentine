@@ -25,7 +25,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 font-bold">
         ب
       </div>
-      <span className="text-sm font-bold text-slate-800">وكالة براديس</span>
+      <span className="text-sm font-bold text-slate-800">وكالة برادايس</span>
     </div>
   );
 

@@ -8,7 +8,7 @@ def test_register_customer_success(client):
         "/api/v1/auth/register",
         json={
             "full_name": "عميل جديد",
-            "email": "new-customer@baradis.example",
+            "email": "new-customer@baradais.example",
             "phone": "0911111111",
             "password": "StrongPass@123",
         },
@@ -22,14 +22,14 @@ def test_register_customer_success(client):
 def test_register_duplicate_phone_fails(client):
     payload = {
         "full_name": "عميل جديد",
-        "email": "unique1@baradis.example",
+        "email": "unique1@baradais.example",
         "phone": "0922222222",
         "password": "StrongPass@123",
     }
     first = client.post("/api/v1/auth/register", json=payload)
     assert first.status_code == 201
 
-    payload["email"] = "unique2@baradis.example"
+    payload["email"] = "unique2@baradais.example"
     second = client.post("/api/v1/auth/register", json=payload)
     assert second.status_code == 409
 
@@ -39,7 +39,7 @@ def test_login_success_and_wrong_password(client):
         "/api/v1/auth/register",
         json={
             "full_name": "مستخدم تسجيل الدخول",
-            "email": "login-user@baradis.example",
+            "email": "login-user@baradais.example",
             "phone": "0933333333",
             "password": "CorrectPass@123",
         },
@@ -47,14 +47,14 @@ def test_login_success_and_wrong_password(client):
 
     good_login = client.post(
         "/api/v1/auth/login",
-        json={"identifier": "login-user@baradis.example", "password": "CorrectPass@123"},
+        json={"identifier": "login-user@baradais.example", "password": "CorrectPass@123"},
     )
     assert good_login.status_code == 200
     assert "access_token" in good_login.json()
 
     bad_login = client.post(
         "/api/v1/auth/login",
-        json={"identifier": "login-user@baradis.example", "password": "WrongPassword"},
+        json={"identifier": "login-user@baradais.example", "password": "WrongPassword"},
     )
     assert bad_login.status_code == 401
 
@@ -69,7 +69,7 @@ def test_repeated_failed_logins_get_locked_out(client):
         "/api/v1/auth/register",
         json={
             "full_name": "مستخدم محاولات متكررة",
-            "email": "lockout-user@baradis.example",
+            "email": "lockout-user@baradais.example",
             "phone": "0944444444",
             "password": "CorrectPass@123",
         },
@@ -78,13 +78,13 @@ def test_repeated_failed_logins_get_locked_out(client):
     for _ in range(5):
         response = client.post(
             "/api/v1/auth/login",
-            json={"identifier": "lockout-user@baradis.example", "password": "WrongPassword"},
+            json={"identifier": "lockout-user@baradais.example", "password": "WrongPassword"},
         )
         assert response.status_code == 401
 
     locked_response = client.post(
         "/api/v1/auth/login",
-        json={"identifier": "lockout-user@baradis.example", "password": "CorrectPass@123"},
+        json={"identifier": "lockout-user@baradais.example", "password": "CorrectPass@123"},
     )
     assert locked_response.status_code == 429
 
@@ -94,14 +94,14 @@ def test_password_change_invalidates_old_token_and_issues_new_one(client):
         "/api/v1/auth/register",
         json={
             "full_name": "مستخدم تغيير كلمة المرور",
-            "email": "password-change-user@baradis.example",
+            "email": "password-change-user@baradais.example",
             "phone": "0955555555",
             "password": "OldPass@123",
         },
     )
     login_response = client.post(
         "/api/v1/auth/login",
-        json={"identifier": "password-change-user@baradis.example", "password": "OldPass@123"},
+        json={"identifier": "password-change-user@baradais.example", "password": "OldPass@123"},
     )
     old_token = login_response.json()["access_token"]
 

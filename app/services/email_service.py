@@ -64,12 +64,12 @@ def send_order_confirmation_email(order: Order) -> None:
     if not recipient_email:
         return
 
-    subject = f"تأكيد استلام طلبك {order.order_number} — وكالة براديس"
+    subject = f"تأكيد استلام طلبك {order.order_number} — وكالة برادايس"
     body = (
         f"مرحباً {order.customer.full_name}،\n\n"
         f"تم استلام طلبك رقم {order.order_number} بنجاح وهو الآن قيد المراجعة.\n"
         "سنُعلمك عبر هذا البريد فور تحديث حالته.\n\n"
-        "وكالة براديس"
+        "وكالة برادايس"
     )
     _send_email(recipient_email, subject, body)
 
@@ -81,10 +81,10 @@ def send_order_status_update_email(order: Order) -> None:
         return
 
     status_label = ORDER_STATUS_LABELS_AR.get(order.status, order.status.value)
-    subject = f"تحديث حالة طلبك {order.order_number} — وكالة براديس"
+    subject = f"تحديث حالة طلبك {order.order_number} — وكالة برادايس"
     body = (
         f"مرحباً {order.customer.full_name}،\n\n"
         f"تم تحديث حالة طلبك رقم {order.order_number} إلى: {status_label}.\n\n"
-        "وكالة براديس"
+        "وكالة برادايس"
     )
     _send_email(recipient_email, subject, body)

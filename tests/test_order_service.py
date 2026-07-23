@@ -72,7 +72,7 @@ def test_customer_cannot_access_other_customer_order(db_session, usd_currency, c
 
     other_customer = User(
         full_name="عميل آخر",
-        email="other@baradis.example",
+        email="other@baradais.example",
         phone="0900000099",
         password_hash=hash_password("Other@12345"),
         role=UserRole.customer,

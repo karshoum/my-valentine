@@ -80,7 +80,7 @@ def admin_user(db_session):
     """ينشئ حساب مدير (admin) جاهزاً للاستخدام في اختبارات الصلاحيات."""
     user = User(
         full_name="مدير النظام",
-        email="admin@baradis.example",
+        email="admin@baradais.example",
         phone="0900000001",
         password_hash=hash_password("Admin@12345"),
         role=UserRole.admin,
@@ -96,7 +96,7 @@ def employee_user(db_session):
     """ينشئ حساب موظف (employee) جاهزاً لاختبارات المراجعة اليدوية."""
     user = User(
         full_name="موظف الاستقبال",
-        email="employee@baradis.example",
+        email="employee@baradais.example",
         phone="0900000002",
         password_hash=hash_password("Employee@12345"),
         role=UserRole.employee,
@@ -112,7 +112,7 @@ def customer_user(db_session):
     """ينشئ حساب عميل (customer) جاهزاً لاختبارات الطلبات."""
     user = User(
         full_name="عميل تجريبي",
-        email="customer@baradis.example",
+        email="customer@baradais.example",
         phone="0900000003",
         password_hash=hash_password("Customer@12345"),
         role=UserRole.customer,
@@ -159,7 +159,7 @@ def make_agent(db_session, payment_mode: PaymentMode, credit_limit=0, discount_r
     """
     user = User(
         full_name="وكيل تجريبي",
-        email=f"agent-{payment_mode.value}@baradis.example",
+        email=f"agent-{payment_mode.value}@baradais.example",
         phone=f"09000{hash(payment_mode.value) % 100000:05d}",
         password_hash=hash_password("Agent@12345"),
         role=UserRole.agent,
