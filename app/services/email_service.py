@@ -19,7 +19,7 @@ from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.services.email_templates import LOGO_CONTENT_ID, load_logo_bytes, render_html_email
 
-logger = logging.getLogger("wakalat_baradise")
+logger = logging.getLogger("wakalat_paradise")
 
 ORDER_STATUS_LABELS_AR: dict[OrderStatus, str] = {
     OrderStatus.pending: "قيد المراجعة",

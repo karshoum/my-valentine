@@ -97,7 +97,7 @@ docker compose up --build
 `http://localhost:8000/docs`.
 
 بيانات المدير الافتراضي (يجب تغييرها فوراً): البريد
-`admin@wakalat-baradise.com`، كلمة المرور `ChangeMe@2026` (أو القيم التي
+`admin@wakalat-paradise.com`، كلمة المرور `ChangeMe@2026` (أو القيم التي
 تحددها عبر متغيرات البيئة `ADMIN_EMAIL` / `ADMIN_PHONE` /
 `ADMIN_PASSWORD`).
 

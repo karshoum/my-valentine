@@ -65,7 +65,7 @@ def test_send_order_confirmation_email_sends_via_smtp_with_logo(monkeypatch, sam
             sent_messages.append({"message": message})
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
-    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
+    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@paradise.example")
     monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
 
     email_service.send_order_confirmation_email(sample_order)
@@ -99,7 +99,7 @@ def test_send_order_status_update_email_uses_arabic_label(monkeypatch, sample_or
             sent_messages.append(message)
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
-    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
+    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@paradise.example")
     monkeypatch.setattr(email_service.settings, "SMTP_USERNAME", None)
     monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
 
@@ -115,7 +115,7 @@ def test_smtp_connection_failure_does_not_raise(monkeypatch, sample_order):
             raise OSError("connection refused")
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
-    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
+    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@paradise.example")
     monkeypatch.setattr(email_service.smtplib, "SMTP", FailingSMTP)
 
     email_service.send_order_confirmation_email(sample_order)  # لا يجب أن يرفع أي استثناء
@@ -143,7 +143,7 @@ def test_order_without_customer_email_is_skipped(monkeypatch, db_session, sample
     db_session.refresh(order)
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
-    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
+    monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@paradise.example")
 
     def _fail_if_called(*args, **kwargs):
         raise AssertionError("لا يجب محاولة الإرسال بلا بريد إلكتروني للعميل")

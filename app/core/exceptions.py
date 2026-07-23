@@ -2,7 +2,7 @@
 
 import logging
 
-logger = logging.getLogger("wakalat_baradise")
+logger = logging.getLogger("wakalat_paradise")
 
 
 class AppException(Exception):
