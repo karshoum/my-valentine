@@ -1,21 +1,23 @@
 // File: frontend/src/features/orders/OrdersPage.tsx
 
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { FilterPill } from "@/components/ui/FilterPill";
 import { inputBaseClass, orderStatusColorMap } from "@/lib/designTokens";
+import { NewOrderModal } from "@/features/orders/NewOrderModal";
 import { OrderDetailPanel } from "@/features/orders/OrderDetailPanel";
 import { OrdersTable } from "@/features/orders/OrdersTable";
 import { useOrders } from "@/features/orders/useOrders";
 import type { OrderOut } from "@/types/order";
 
-/** الشاشة التفصيلية لكل الطلبات: بحث، تصفية حسب الحالة، وفتح لوحة تفاصيل لكل طلب. */
+/** الشاشة التفصيلية لكل الطلبات: إنشاء طلب جديد، بحث، تصفية حسب الحالة، وفتح لوحة تفاصيل لكل طلب. */
 export function OrdersPage() {
   const { orders, isLoading, error, refetch } = useOrders();
   const [searchText, setSearchText] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderOut | null>(null);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
 
   const filteredOrders = useMemo(() => {
     return orders
@@ -40,9 +42,20 @@ export function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-900">الطلبات</h1>
-        <p className="text-sm text-slate-500">إدارة ومتابعة كل الطلبات وحالاتها</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900">الطلبات</h1>
+          <p className="text-sm text-slate-500">إدارة ومتابعة كل الطلبات وحالاتها</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsNewOrderModalOpen(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white
+            transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98]"
+        >
+          <Plus size={16} />
+          طلب جديد
+        </button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -76,6 +89,17 @@ export function OrdersPage() {
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onOrderUpdated={handleOrderUpdated}
+        />
+      )}
+
+      {isNewOrderModalOpen && (
+        <NewOrderModal
+          onClose={() => setIsNewOrderModalOpen(false)}
+          onCreated={(order) => {
+            setIsNewOrderModalOpen(false);
+            refetch();
+            setSelectedOrder(order);
+          }}
         />
       )}
     </div>

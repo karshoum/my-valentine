@@ -87,6 +87,25 @@ def get_payment_or_404(db: Session, payment_id: int) -> Payment:
     return payment
 
 
+def list_payments(db: Session, status_filter: PaymentStatus | None = None) -> list[Payment]:
+    """
+    يُعيد كل محاولات الدفع لأغراض مراجعة الموظف/المدير، مع تصفية
+    اختيارية حسب الحالة (لعرض المعلَّقة فقط عادة، وهي طابور عمل المراجعة).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        status_filter: حالة اختيارية للتصفية بها (مثال: PaymentStatus.pending).
+
+    Returns:
+        list[Payment]: محاولات الدفع مرتبة تصاعدياً حسب تاريخ الإنشاء
+        (الأقدم أولاً، لأنه غالباً الأولى بالمراجعة).
+    """
+    query = db.query(Payment)
+    if status_filter:
+        query = query.filter(Payment.status == status_filter)
+    return query.order_by(Payment.created_at.asc()).all()
+
+
 def verify_payment(db: Session, payment_id: int, approve: bool, notes: str | None, employee: User) -> Payment:
     """
     يراجع موظف/مدير محاولة دفع معلَّقة ويقرّر قبولها أو رفضها. القبول

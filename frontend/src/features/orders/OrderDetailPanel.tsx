@@ -1,11 +1,15 @@
 // File: frontend/src/features/orders/OrderDetailPanel.tsx
 
-import { X } from "lucide-react";
+import { CheckCircle2, Download, X } from "lucide-react";
+import { useState } from "react";
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useAuth } from "@/features/auth/useAuth";
+import { DeliverableUploadForm } from "@/features/orders/DeliverableUploadForm";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderStatusUpdateForm } from "@/features/orders/OrderStatusUpdateForm";
+import { SubmitPaymentForm } from "@/features/payments/SubmitPaymentForm";
+import { buildFileUrl } from "@/lib/apiClient";
 import type { OrderOut } from "@/types/order";
 
 interface OrderDetailPanelProps {
@@ -14,10 +18,11 @@ interface OrderDetailPanelProps {
   onOrderUpdated: (updatedOrder: OrderOut) => void;
 }
 
-/** لوحة جانبية تعرض تفاصيل طلب كاملة: المسافرون، الخط الزمني للحالة، وأداة تحديث الحالة للموظفين. */
+/** لوحة جانبية تعرض تفاصيل طلب كاملة: المسافرون، رفع الدفع، الخط الزمني، وأداة تحديث الحالة للموظفين. */
 export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetailPanelProps) {
   const { role } = useAuth();
   const canManageStatus = role === "admin" || role === "employee";
+  const [hasJustSubmittedPayment, setHasJustSubmittedPayment] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30 backdrop-blur-sm" onClick={onClose}>
@@ -59,6 +64,40 @@ export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetail
             ))}
           </div>
         </section>
+
+        {order.status === "pending" && (
+          <section className="mb-6">
+            {hasJustSubmittedPayment ? (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                <CheckCircle2 size={18} />
+                تم رفع إثبات الدفع بنجاح، بانتظار المراجعة اليدوية من الموظف/المدير.
+              </div>
+            ) : (
+              <SubmitPaymentForm order={order} onSubmitted={() => setHasJustSubmittedPayment(true)} />
+            )}
+          </section>
+        )}
+
+        {order.deliverable_signed_url && (
+          <section className="mb-6">
+            <a
+              href={buildFileUrl(order.deliverable_signed_url)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 p-3 text-sm
+                font-medium text-violet-700 transition-all duration-300 hover:scale-[1.01] hover:bg-violet-100"
+            >
+              <Download size={16} />
+              تحميل المستند النهائي (تذكرة/فيزا)
+            </a>
+          </section>
+        )}
+
+        {canManageStatus && order.status === "in_system" && (
+          <section className="mb-6">
+            <DeliverableUploadForm order={order} onUploaded={onOrderUpdated} />
+          </section>
+        )}
 
         <section className="mb-6">
           <h3 className="mb-3 text-sm font-semibold text-slate-700">سجل الحالات</h3>

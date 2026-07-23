@@ -67,5 +67,6 @@ class OrderOut(BaseModel):
     currency_code: str
     status: OrderStatus
     created_at: datetime
+    deliverable_signed_url: str | None = None
     passengers: list[OrderPassengerOut] = []
     status_logs: list[OrderStatusLogOut] = []

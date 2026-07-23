@@ -30,3 +30,11 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+/**
+ * يحوّل رابط ملف موقّع (نسبي، مثال: /api/v1/files/...) إلى رابط كامل
+ * يشير للخلفية الفعلية، لأن الفرونت‌إند والخلفية على منفذين مختلفين.
+ */
+export function buildFileUrl(signedUrl: string): string {
+  return signedUrl.startsWith("http") ? signedUrl : `${API_BASE_URL}${signedUrl}`;
+}

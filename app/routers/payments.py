@@ -6,13 +6,23 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.permissions import require_staff
 from app.core.security import get_current_user
-from app.models.enums import PaymentMethod
+from app.models.enums import PaymentMethod, PaymentStatus
 from app.models.payment import Payment
 from app.models.user import User
 from app.schemas.payment import PaymentOut, PaymentSubmitRequest, PaymentVerifyRequest
 from app.services import payment_service
 
 router = APIRouter(prefix="/api/v1/payments", tags=["الدفع (بنكك / فيزا) والمراجعة اليدوية"])
+
+
+@router.get("", response_model=list[PaymentOut])
+def list_payments(
+    status_filter: PaymentStatus | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_staff),
+) -> list[Payment]:
+    """يُعيد كل محاولات الدفع لأغراض المراجعة، مع تصفية اختيارية حسب الحالة (موظف أو مدير فقط)."""
+    return payment_service.list_payments(db, status_filter)
 
 
 @router.post("/orders/{order_id}", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)

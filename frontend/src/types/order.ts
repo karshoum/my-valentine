@@ -2,6 +2,19 @@
 
 import type { OrderStatus } from "@/types/enums";
 
+/** مطابق لـ app.schemas.order.OrderPassengerIn. */
+export interface OrderPassengerIn {
+  full_name: string;
+  passport_number: string | null;
+}
+
+/** مطابق لـ app.schemas.order.OrderCreateRequest. */
+export interface OrderCreateRequest {
+  service_id: number;
+  currency_code: string;
+  passengers: OrderPassengerIn[];
+}
+
 /** مطابق لـ app.schemas.order.OrderPassengerOut. */
 export interface OrderPassengerOut {
   id: number;
@@ -36,6 +49,7 @@ export interface OrderOut {
   currency_code: string;
   status: OrderStatus;
   created_at: string;
+  deliverable_signed_url: string | null;
   passengers: OrderPassengerOut[];
   status_logs: OrderStatusLogOut[];
 }

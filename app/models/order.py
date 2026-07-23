@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+from app.core.storage import generate_signed_url
 from app.models.enums import OrderStatus
 
 
@@ -24,6 +25,7 @@ class Order(Base):
     currency_code = Column(String(5), ForeignKey("currencies.code"), nullable=False)
     status = Column(Enum(OrderStatus, name="order_status"), default=OrderStatus.pending, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    deliverable_file_url = Column(String(255), nullable=True)
 
     passengers = relationship("OrderPassenger", back_populates="order", cascade="all, delete-orphan")
     status_logs = relationship(
@@ -34,6 +36,13 @@ class Order(Base):
     )
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
     refunds = relationship("Refund", back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def deliverable_signed_url(self) -> str | None:
+        """يُعيد رابطاً موقّعاً ومحدود الصلاحية للمستند النهائي (تذكرة/فيزا) إن وُجد."""
+        if not self.deliverable_file_url:
+            return None
+        return generate_signed_url(self.deliverable_file_url)
 
 
 class OrderPassenger(Base):

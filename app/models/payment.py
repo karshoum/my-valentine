@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+from app.core.storage import generate_signed_url
 from app.models.enums import PaymentMethod, PaymentStatus
 
 
@@ -30,3 +31,15 @@ class Payment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     order = relationship("Order", back_populates="payments")
+
+    @property
+    def receipt_signed_url(self) -> str | None:
+        """يُعيد رابطاً موقّعاً ومحدود الصلاحية لصورة إشعار الدفع إن وُجدت."""
+        if not self.receipt_image_url:
+            return None
+        return generate_signed_url(self.receipt_image_url)
+
+    @property
+    def order_number(self) -> str:
+        """يُعيد رقم الطلب المرتبط بهذا الدفع، لعرضه في شاشة مراجعة المدفوعات."""
+        return self.order.order_number

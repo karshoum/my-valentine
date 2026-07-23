@@ -9,6 +9,7 @@ import { AgentsPage } from "@/features/agents/AgentsPage";
 import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
+import { PaymentsPage } from "@/features/payments/PaymentsPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
 import { ServicesPage } from "@/features/services/ServicesPage";
 
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "orders", element: <OrdersPage /> },
       { path: "agents", element: <AgentsPage /> },
+      { path: "payments", element: <PaymentsPage /> },
       { path: "services", element: <ServicesPage /> },
       { path: "currencies", element: <CurrenciesPage /> },
       { path: "profile", element: <ProfilePage /> },

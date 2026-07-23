@@ -25,16 +25,18 @@ class PaymentVerifyRequest(BaseModel):
 
 
 class PaymentOut(BaseModel):
-    """تمثيل سجل دفع كامل في الاستجابات."""
+    """تمثيل سجل دفع كامل في الاستجابات، مع رابط موقّت لصورة إشعار الدفع."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     order_id: int
+    order_number: str
     payment_method: PaymentMethod
     amount: Decimal
     currency_code: str | None
     transaction_ref: str | None
+    receipt_signed_url: str | None
     status: PaymentStatus
     verified_by: int | None
     verified_at: datetime | None

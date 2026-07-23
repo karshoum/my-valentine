@@ -1,6 +1,6 @@
 # File: app/routers/orders.py
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,7 +9,7 @@ from app.core.security import get_current_user
 from app.models.order import Order
 from app.models.user import User
 from app.schemas.order import OrderCreateRequest, OrderOut, OrderStatusUpdateRequest
-from app.services import order_service
+from app.services import order_deliverable_service, order_service
 
 router = APIRouter(prefix="/api/v1/orders", tags=["الطلبات وتتبع الحالة"])
 
@@ -45,3 +45,14 @@ def update_order_status(
 ) -> Order:
     """ينقل حالة طلب وفق مصفوفة الانتقالات المسموحة (موظف أو مدير فقط)."""
     return order_service.update_order_status(db, order_id, payload.new_status, staff_user, payload.notes)
+
+
+@router.post("/{order_id}/deliverable", response_model=OrderOut)
+def attach_deliverable_file(
+    order_id: int,
+    deliverable_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    staff_user: User = Depends(require_staff),
+) -> Order:
+    """يرفع ويربط المستند النهائي لطلب (تذكرة/فيزا) بعد إتمام الحجز الفعلي خارجياً (موظف أو مدير فقط)."""
+    return order_deliverable_service.attach_deliverable_file(db, order_id, deliverable_file, staff_user)
