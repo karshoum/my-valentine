@@ -11,7 +11,26 @@
 ## آخر حالة معروفة للمشروع
 
 - **الفرع النشط**: `claude/wakalat-bradis-project-7iwyup`
-- **Backend**: مكتمل بالكامل (FastAPI + PostgreSQL)، 31 اختبار ناجح،
+- **JWT**: تمت الترقية من `python-jose` إلى `PyJWT==2.9.0` بالكامل
+  (`app/core/security.py` فقط تأثّر — `create_access_token`/`decode_access_token`).
+  لا أثر لـ `jose` في أي مكان آخر بالكود.
+- **كتالوج خدمات الوكالة الفعلي**: أُضيف عبر `scripts/seed_agency_services.py`
+  (بيانات الخدمات في `scripts/agency_services_catalog.py`) — **39 خدمة
+  حقيقية** بالضبط كما أرسلتها الوكالة، موزّعة على 11 تصنيفاً (أُضيف 7
+  تصنيفات جديدة لـ `ServiceCategory`: `ship_ticket`, `renewal_extension`,
+  `security_approval`, `procedure_package`, `tourism_package`,
+  `document_extraction`, `attestation`). **مهم جداً**: كل خدمة أُدخلت
+  بسعر أساسي مؤقت **0.00 دولار** لأن الوكالة لم ترسل بعد الأسعار
+  الفعلية — يجب على الإدارة تحديث كل سعر يدوياً عبر
+  `PATCH /api/v1/services/{id}` (أو من شاشة لوحة التحكم إن وُجدت لاحقاً)
+  قبل عرض أي خدمة فعلياً للعملاء. السكربت idempotent (آمن التشغيل أكثر
+  من مرة، يتجاوز أي عنوان موجود مسبقاً). خدمتا "إقامة رومانيا الدائمة"
+  و"إقامة بولندا الدائمة" **لم تُضافا عمداً** لأن الوكالة وصفتهما بـ"قريباً".
+- **مهم**: ترحيل جديد `0003_expand_service_category_enum` — أي جهاز
+  يسحب هذا الكود لازم يشغّل `alembic upgrade head` (PostgreSQL لا يدعم
+  حذف قيمة Enum، فـ downgrade لهذا الترحيل غير قابل للتنفيذ فعلياً — راجع
+  تعليقات الملف).
+- **Backend**: مكتمل بالكامل (FastAPI + PostgreSQL)، 36 اختبار ناجح،
   Docker + CI جاهزين. فيه الآن rate limiting بسيط على تسجيل الدخول
   (in-memory، 5 محاولات فاشلة = قفل 15 دقيقة)، و`PATCH /api/v1/users/me/password`
   لتغيير كلمة المرور الذاتي. خصم محفظة الوكيل (`wallet_service.deduct_for_order`)
@@ -100,6 +119,31 @@
 
 ## السجل الزمني (أضف سطراً جديداً في الأعلى، لا تحذف القديم)
 
+- **2026-07-23 — جلسة سحابية (ترقية PyJWT + كتالوج الخدمات الفعلي)**:
+  بناءً على طلب مباشر من المستخدم: (1) رقّيت `python-jose` إلى
+  `PyJWT==2.9.0` في `app/core/security.py` و`requirements.txt` (استبدلت
+  `from jose import jwt, JWTError` بـ `import jwt` + `except jwt.PyJWTError`)،
+  وتحققت حياً إن توليد/فك تشفير التوكن يعمل بعد إزالة `python-jose`
+  والاعتماديات المرتبطة به (`ecdsa`, `rsa`, `pyasn1`) من البيئة تماماً.
+  (2) أضفت كتالوج خدمات الوكالة الفعلي كاملاً كما أرسلته الوكالة نصاً:
+  وسّعت `ServiceCategory` بـ 7 تصنيفات جديدة، أضفت ترحيل
+  `0003_expand_service_category_enum` (تحقق منه بـ `alembic upgrade
+  head --sql` — 7 عبارات `ALTER TYPE ... ADD VALUE` صحيحة)، وبنيت
+  `scripts/agency_services_catalog.py` (بيانات الـ 39 خدمة) +
+  `scripts/seed_agency_services.py` (منطق الإدخال، idempotent). اختبرت
+  حياً: شغّلت السكربت مرتين على SQLite (تأكدت من عدم التكرار)، شغّلت
+  الـ backend فعلياً وطلبت `GET /api/v1/services` (رجعت الـ 39 خدمة
+  بالتصنيفات وتفاصيل الفيزا/الإقامة الصحيحة)، وأنشأت طلباً حقيقياً
+  بخدمة من تصنيف جديد كلياً (`attestation`) عبر `POST /api/v1/orders`
+  ونجح بالكامل. أضفت `tests/test_agency_services_catalog.py` (4
+  اختبارات: تفرّد العناوين، صحة التصنيفات، idempotency، وربط/عدم ربط
+  تفاصيل الفيزا حسب التصنيف) — **36/36 اختبار ناجح**. حدّثت
+  `frontend/src/types/enums.ts` بالتصنيفات الجديدة و`npm run build`
+  نظيف. أضفت خطوة `seed_agency_services` لسلسلة أوامر `docker-compose.yml`.
+  **الأسعار كلها 0.00 مؤقتاً** — لم تُرسَل أسعار فعلية، لازم الإدارة
+  تحدّثها قبل أي عرض حقيقي للعملاء. التالي: انتظار توجيه المستخدم
+  (ربما تحديد الأسعار الفعلية، أو بناء شاشة عرض الخدمات العامة في
+  الـ Frontend، أو أي أولوية من قائمة المهام المقترحة أعلاه).
 - **2026-07-23 — جلسة سحابية (تحصين رفع الملفات + إبطال الجلسات)**:
   بصفتي مستشاراً تقنياً، راجعت الأمان مرة أخرى بعد سؤال مباشر من
   المستخدم ولقيت سلسلة ثغرات حقيقية قابلة للتسلسل: `save_private_file`

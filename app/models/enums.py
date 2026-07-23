@@ -29,9 +29,16 @@ class ServiceCategory(str, enum.Enum):
     """تصنيفات الخدمات المعروضة للعملاء والوكلاء."""
 
     flight = "flight"
+    ship_ticket = "ship_ticket"
     visa = "visa"
     residency = "residency"
     insurance = "insurance"
+    renewal_extension = "renewal_extension"
+    security_approval = "security_approval"
+    procedure_package = "procedure_package"
+    tourism_package = "tourism_package"
+    document_extraction = "document_extraction"
+    attestation = "attestation"
 
 
 class OrderStatus(str, enum.Enum):

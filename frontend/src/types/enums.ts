@@ -7,7 +7,18 @@ export type UserRole = "admin" | "employee" | "agent" | "customer";
 export type PaymentMode = "prepaid_wallet" | "credit_limit" | "pay_per_order";
 
 /** مطابق لـ app.models.enums.ServiceCategory. */
-export type ServiceCategory = "flight" | "visa" | "residency" | "insurance";
+export type ServiceCategory =
+  | "flight"
+  | "ship_ticket"
+  | "visa"
+  | "residency"
+  | "insurance"
+  | "renewal_extension"
+  | "security_approval"
+  | "procedure_package"
+  | "tourism_package"
+  | "document_extraction"
+  | "attestation";
 
 /** مطابق لـ app.models.enums.OrderStatus. */
 export type OrderStatus =

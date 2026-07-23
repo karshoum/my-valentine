@@ -65,6 +65,7 @@ cp .env.example .env
 
 alembic upgrade head                    # ينشئ كل الجداول (migration جاهزة مسبقاً)
 python -m scripts.seed_initial_data     # يضيف العملات الأساسية + حساب مدير افتراضي
+python -m scripts.seed_agency_services  # يضيف كتالوج خدمات الوكالة الفعلي (39 خدمة)
 
 uvicorn app.main:app --reload
 ```
