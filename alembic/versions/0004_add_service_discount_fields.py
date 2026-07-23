@@ -3,7 +3,7 @@
 """add discount_percentage and discount_valid_until to services
 
 Revision ID: 0004_add_service_discount_fields
-Revises: 0003_expand_service_category_enum
+Revises: 0003_expand_service_category
 Create Date: 2026-07-23
 
 يضيف حقلي discount_percentage وdiscount_valid_until لجدول services،
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0004_add_service_discount_fields"
-down_revision = "0003_expand_service_category_enum"
+down_revision = "0003_expand_service_category"
 branch_labels = None
 depends_on = None
 
