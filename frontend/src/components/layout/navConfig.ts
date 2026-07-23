@@ -1,6 +1,6 @@
 // File: frontend/src/components/layout/navConfig.ts
 
-import { CircleUser, LayoutDashboard, PlaneTakeoff, Users2, Wallet } from "lucide-react";
+import { CircleUser, LayoutDashboard, PlaneTakeoff, Tag, Users2, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import type { UserRole } from "@/types/enums";
@@ -30,6 +30,12 @@ export const navItems: NavItem[] = [
     label: "الوكلاء (B2B)",
     path: "/agents",
     icon: Users2,
+    allowedRoles: ["admin", "employee"],
+  },
+  {
+    label: "الخدمات",
+    path: "/services",
+    icon: Tag,
     allowedRoles: ["admin", "employee"],
   },
   {

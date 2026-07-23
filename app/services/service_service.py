@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
 from app.models.enums import ServiceCategory
+from app.models.order import Order
 from app.models.service import Service, VisaResidencyDetail
 from app.models.user import User
-from app.schemas.service import ServiceCreateRequest, ServiceUpdateRequest
+from app.schemas.service import ServiceCreateRequest, ServiceDiscountUpdateRequest, ServiceUpdateRequest
 from app.services import audit_service
 
 
@@ -99,6 +100,68 @@ def update_service(db: Session, service_id: int, payload: ServiceUpdateRequest, 
         user_id=changed_by.id,
         action="update_service",
         details={"service_id": service.id, **{k: str(v) for k, v in updates.items()}},
+    )
+    db.commit()
+    db.refresh(service)
+    return service
+
+
+def delete_service(db: Session, service_id: int, deleted_by: User) -> None:
+    """
+    يحذف خدمة نهائياً من الكتالوج، بشرط ألا تكون مرتبطة بأي طلب سابق —
+    حفاظاً على سلامة سجل الطلبات التاريخي. خدمة مرتبطة بطلبات يجب
+    تعطيلها (is_active=False عبر update_service) بدلاً من حذفها.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        service_id: معرّف الخدمة المستهدَفة.
+        deleted_by: الموظف/المدير الذي ينفّذ الحذف.
+
+    Raises:
+        AppException: 404 إذا لم توجد الخدمة، أو 409 إذا كانت مرتبطة بطلبات سابقة.
+    """
+    service = get_service_or_404(db, service_id)
+
+    has_prior_orders = db.query(Order).filter(Order.service_id == service_id).first() is not None
+    if has_prior_orders:
+        raise AppException(
+            "لا يمكن حذف خدمة مرتبطة بطلبات سابقة؛ عطّلها بدلاً من ذلك (is_active) للحفاظ على سجل الطلبات",
+            status_code=409,
+        )
+
+    audit_service.log_action(
+        db, user_id=deleted_by.id, action="delete_service", details={"service_id": service.id, "title": service.title}
+    )
+    db.delete(service)
+    db.commit()
+
+
+def set_service_discount(db: Session, service_id: int, payload: ServiceDiscountUpdateRequest, changed_by: User) -> Service:
+    """
+    يحدّد أو يلغي عرض خصم محدود المدة على خدمة (admin فقط).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        service_id: معرّف الخدمة المستهدَفة.
+        payload: نسبة الخصم وتاريخ الانتهاء (كلاهما None لإلغاء العرض).
+        changed_by: المدير الذي ينفّذ العملية.
+
+    Returns:
+        Service: الخدمة بعد تطبيق/إلغاء الخصم.
+    """
+    service = get_service_or_404(db, service_id)
+    service.discount_percentage = payload.discount_percentage
+    service.discount_valid_until = payload.discount_valid_until
+
+    audit_service.log_action(
+        db,
+        user_id=changed_by.id,
+        action="set_service_discount",
+        details={
+            "service_id": service.id,
+            "discount_percentage": str(payload.discount_percentage) if payload.discount_percentage else None,
+            "discount_valid_until": payload.discount_valid_until.isoformat() if payload.discount_valid_until else None,
+        },
     )
     db.commit()
     db.refresh(service)

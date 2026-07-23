@@ -10,6 +10,7 @@ import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
+import { ServicesPage } from "@/features/services/ServicesPage";
 
 /** خريطة توجيه التطبيق الكاملة: شاشة الدخول العامة، وشاشات لوحة التحكم المحمية. */
 export const router = createBrowserRouter([
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "orders", element: <OrdersPage /> },
       { path: "agents", element: <AgentsPage /> },
+      { path: "services", element: <ServicesPage /> },
       { path: "currencies", element: <CurrenciesPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],

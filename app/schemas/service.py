@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import ServiceCategory
 
@@ -46,6 +46,28 @@ class ServiceUpdateRequest(BaseModel):
     is_active: bool | None = None
 
 
+class ServiceDiscountUpdateRequest(BaseModel):
+    """
+    طلب تحديد أو إلغاء عرض خصم محدود المدة على خدمة (admin فقط).
+
+    لتفعيل عرض: أرسل النسبة وتاريخ الانتهاء معاً. لإلغاء عرض قائم: أرسل
+    القيمتين كـ null معاً. أي مزيج آخر (نسبة بلا تاريخ انتهاء أو العكس)
+    يُرفض لتفادي عرض بلا تاريخ نهاية واضح.
+    """
+
+    discount_percentage: Decimal | None = Field(default=None, ge=0, le=100)
+    discount_valid_until: datetime | None = None
+
+    @model_validator(mode="after")
+    def _both_or_neither(self) -> "ServiceDiscountUpdateRequest":
+        """يتحقق من إرسال الحقلين معاً أو تركهما فارغين معاً، لا مزيجاً بينهما."""
+        has_percentage = self.discount_percentage is not None
+        has_expiry = self.discount_valid_until is not None
+        if has_percentage != has_expiry:
+            raise ValueError("يجب تحديد نسبة الخصم وتاريخ الانتهاء معاً، أو تركهما فارغين لإلغاء العرض")
+        return self
+
+
 class ServiceOut(BaseModel):
     """تمثيل خدمة كاملة في الاستجابات، مع تفاصيل الفيزا/الإقامة إن وُجدت."""
 
@@ -58,6 +80,10 @@ class ServiceOut(BaseModel):
     base_price_usd: Decimal
     is_active: bool
     created_at: datetime
+    discount_percentage: Decimal | None
+    discount_valid_until: datetime | None
+    has_active_discount: bool
+    effective_price_usd: Decimal
     visa_residency_detail: VisaResidencyDetailOut | None = None
 
 
