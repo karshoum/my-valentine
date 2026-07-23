@@ -29,7 +29,15 @@ flight_booking_fee_type = sa.Enum(
 
 
 def upgrade() -> None:
-    flight_booking_fee_type.create(op.get_bind(), checkfirst=True)
+    op.execute(
+        """
+        DO $$ BEGIN
+            CREATE TYPE flight_booking_fee_type AS ENUM ('flat', 'percentage');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+        """
+    )
 
     op.create_table(
         "flight_booking_fee_settings",
@@ -62,4 +70,4 @@ def downgrade() -> None:
     op.drop_column("orders", "contact_whatsapp")
     op.drop_table("flight_booking_details")
     op.drop_table("flight_booking_fee_settings")
-    flight_booking_fee_type.drop(op.get_bind(), checkfirst=True)
+    op.execute("DROP TYPE IF EXISTS flight_booking_fee_type")
