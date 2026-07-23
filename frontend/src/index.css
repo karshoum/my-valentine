@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", "Tajawal", system-ui, sans-serif;
+  --color-brand-emerald: #10b981;
+  --color-brand-violet: #8b5cf6;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  @apply bg-gradient-to-br from-slate-50 to-slate-100/50 text-slate-800;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .interactive-scale {
+    @apply transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .focus-ring-emerald {
+    @apply border-slate-200/80 bg-slate-50/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none;
+  }
+}
