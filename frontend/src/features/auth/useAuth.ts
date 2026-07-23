@@ -2,7 +2,7 @@
 
 import { useContext } from "react";
 
-import { AuthContext, type AuthContextValue } from "@/features/auth/authContext";
+import { AuthContext, type AuthContextValue } from "@/features/auth/authContextValue";
 
 /** يُعيد حالة المصادقة الحالية؛ يجب استدعاؤه داخل AuthProvider فقط. */
 export function useAuth(): AuthContextValue {

@@ -15,3 +15,10 @@ export interface CurrencyOut {
 export interface CurrencyManualUpdateRequest {
   rate_to_usd: string;
 }
+
+/** مطابق لـ app.schemas.currency.CurrencyCreateRequest. */
+export interface CurrencyCreateRequest {
+  code: string;
+  name: string;
+  rate_to_usd: string;
+}

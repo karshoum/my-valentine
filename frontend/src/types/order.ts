@@ -20,6 +20,12 @@ export interface OrderStatusLogOut {
   created_at: string;
 }
 
+/** مطابق لـ app.schemas.order.OrderStatusUpdateRequest. */
+export interface OrderStatusUpdateRequest {
+  new_status: OrderStatus;
+  notes: string | null;
+}
+
 /** مطابق لـ app.schemas.order.OrderOut. */
 export interface OrderOut {
   id: number;

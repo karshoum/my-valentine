@@ -1,4 +1,4 @@
-// File: frontend/src/features/auth/authContext.ts
+// File: frontend/src/features/auth/authContextValue.ts
 
 import { createContext } from "react";
 

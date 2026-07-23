@@ -6,7 +6,10 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { ComingSoonPage } from "@/components/ui/ComingSoonPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { AgentsPage } from "@/features/agents/AgentsPage";
+import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { OrdersPage } from "@/features/orders/OrdersPage";
 
 /** خريطة توجيه التطبيق الكاملة: شاشة الدخول العامة، وشاشات لوحة التحكم المحمية. */
 export const router = createBrowserRouter([
@@ -20,9 +23,9 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: "orders", element: <ComingSoonPage title="الطلبات" /> },
-      { path: "agents", element: <ComingSoonPage title="الوكلاء (B2B)" /> },
-      { path: "currencies", element: <ComingSoonPage title="العملات وسعر الصرف" /> },
+      { path: "orders", element: <OrdersPage /> },
+      { path: "agents", element: <AgentsPage /> },
+      { path: "currencies", element: <CurrenciesPage /> },
       { path: "profile", element: <ComingSoonPage title="حسابي" /> },
     ],
   },

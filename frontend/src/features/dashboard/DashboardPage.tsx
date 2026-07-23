@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { KpiCard } from "@/components/ui/KpiCard";
 import { RecentOrdersTable } from "@/features/dashboard/RecentOrdersTable";
-import { useOrders } from "@/features/dashboard/useOrders";
+import { useOrders } from "@/features/orders/useOrders";
 
 /** الصفحة الرئيسية للوحة التحكم: كروت مؤشرات الأداء وجدول أحدث الطلبات. */
 export function DashboardPage() {

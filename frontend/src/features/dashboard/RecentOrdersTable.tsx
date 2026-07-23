@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { FilterPill } from "@/components/ui/FilterPill";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { orderStatusColorMap } from "@/lib/designTokens";
 import type { OrderOut } from "@/types/order";
@@ -63,18 +64,5 @@ export function RecentOrdersTable({ orders }: { orders: OrderOut[] }) {
         </table>
       </div>
     </div>
-  );
-}
-
-function FilterPill({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-300 active:scale-[0.98] ${
-        isActive ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-      }`}
-    >
-      {label}
-    </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 
-import { AuthContext, type AuthContextValue } from "@/features/auth/authContext";
+import { AuthContext, type AuthContextValue } from "@/features/auth/authContextValue";
 import { apiClient } from "@/lib/apiClient";
 import { clearAuthSession, getStoredFullName, getStoredRole, getStoredToken, saveAuthSession } from "@/lib/authStorage";
 import type { UserRole } from "@/types/enums";

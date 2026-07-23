@@ -21,3 +21,34 @@ export interface CustomRateOut {
   service_id: number;
   custom_price_usd: string;
 }
+
+/** مطابق لـ app.schemas.agent.AgentCreateRequest. */
+export interface AgentCreateRequest {
+  full_name: string;
+  email: string | null;
+  phone: string;
+  password: string;
+  agency_name: string;
+  payment_mode: PaymentMode;
+  credit_limit: string;
+  discount_rate: string;
+}
+
+/** مطابق لـ app.schemas.agent.AgentUpdateRequest. */
+export interface AgentUpdateRequest {
+  payment_mode?: PaymentMode;
+  credit_limit?: string;
+  discount_rate?: string;
+}
+
+/** مطابق لـ app.schemas.agent.WalletDepositRequest. */
+export interface WalletDepositRequest {
+  amount: string;
+  notes: string | null;
+}
+
+/** مطابق لـ app.schemas.agent.CustomRateCreateRequest. */
+export interface CustomRateCreateRequest {
+  service_id: number;
+  custom_price_usd: string;
+}
