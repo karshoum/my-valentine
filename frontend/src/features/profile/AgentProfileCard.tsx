@@ -20,7 +20,7 @@ export function AgentProfileCard({ agentProfile }: { agentProfile: AgentOut }) {
         </div>
         <div>
           <p className="text-xs text-slate-500">رصيد المحفظة</p>
-          <p className="mt-0.5 font-semibold text-emerald-700">${agentProfile.wallet_balance}</p>
+          <p className="mt-0.5 font-semibold text-navy-700">${agentProfile.wallet_balance}</p>
         </div>
         <div>
           <p className="text-xs text-slate-500">الحد الائتماني</p>

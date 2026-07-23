@@ -2,20 +2,24 @@
 
 """
 إرسال إشعارات الإيميل (تأكيد الطلب وتحديثات الحالة) عبر SMTP عام قابل
-لأي مزوّد (Gmail SMTP، SendGrid SMTP relay، ...). طالما لم يُضبَط
-SMTP_HOST بعد، الإرسال يُتجاوَز بصمت؛ وأي فشل اتصال لا يوقف تنفيذ
-العملية الأساسية (إنشاء طلب أو تحديث حالته) - يُسجَّل في اللوجز فقط.
+لأي مزوّد (Gmail SMTP، SendGrid SMTP relay، ...)، بالهوية البصرية
+الموحّدة للوكالة (انظر app/services/email_templates.py). طالما لم
+يُضبَط SMTP_HOST بعد، الإرسال يُتجاوَز بصمت؛ وأي فشل اتصال لا يوقف
+تنفيذ العملية الأساسية (إنشاء طلب أو تحديث حالته) - يُسجَّل في اللوجز فقط.
 """
 
 import logging
 import smtplib
-from email.message import EmailMessage
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from app.core.config import settings
 from app.models.enums import OrderStatus
 from app.models.order import Order
+from app.services.email_templates import LOGO_CONTENT_ID, load_logo_bytes, render_html_email
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("wakalat_baradise")
 
 ORDER_STATUS_LABELS_AR: dict[OrderStatus, str] = {
     OrderStatus.pending: "قيد المراجعة",
@@ -27,25 +31,37 @@ ORDER_STATUS_LABELS_AR: dict[OrderStatus, str] = {
 }
 
 
-def _send_email(to_email: str, subject: str, body: str) -> None:
+def _send_branded_email(to_email: str, subject: str, heading: str, paragraphs: list[str]) -> None:
     """
-    يرسل رسالة نصية بسيطة عبر إعدادات SMTP الحالية. لا يرفع أي استثناء
-    عند غياب الإعدادات أو فشل الاتصال؛ يكتفي بتسجيل تحذير في اللوجز.
+    يرسل إيميلاً بالهوية البصرية الموحّدة للوكالة (شعار + نسخة HTML)، مع
+    نسخة نصية بديلة لعملاء البريد التي لا تدعم HTML.
 
     Args:
         to_email: عنوان بريد المستلم.
         subject: عنوان الرسالة.
-        body: نص الرسالة.
+        heading: عنوان المحتوى داخل قالب الإيميل.
+        paragraphs: فقرات نص الرسالة.
     """
     if not settings.SMTP_HOST or not settings.SMTP_FROM_EMAIL:
         logger.info("SMTP غير مُعدّ بعد؛ تم تجاوز إرسال الإيميل إلى %s", to_email)
         return
 
-    message = EmailMessage()
+    message = MIMEMultipart("related")
     message["Subject"] = subject
     message["From"] = settings.SMTP_FROM_EMAIL
     message["To"] = to_email
-    message.set_content(body)
+
+    alternative = MIMEMultipart("alternative")
+    alternative.attach(MIMEText("\n\n".join(paragraphs), "plain", "utf-8"))
+    alternative.attach(MIMEText(render_html_email(heading, paragraphs), "html", "utf-8"))
+    message.attach(alternative)
+
+    logo_bytes = load_logo_bytes()
+    if logo_bytes:
+        logo_image = MIMEImage(logo_bytes, _subtype="png")
+        logo_image.add_header("Content-ID", f"<{LOGO_CONTENT_ID}>")
+        logo_image.add_header("Content-Disposition", "inline", filename="logo.png")
+        message.attach(logo_image)
 
     try:
         with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as smtp_connection:
@@ -64,14 +80,15 @@ def send_order_confirmation_email(order: Order) -> None:
     if not recipient_email:
         return
 
-    subject = f"تأكيد استلام طلبك {order.order_number} — وكالة برادايس"
-    body = (
-        f"مرحباً {order.customer.full_name}،\n\n"
-        f"تم استلام طلبك رقم {order.order_number} بنجاح وهو الآن قيد المراجعة.\n"
-        "سنُعلمك عبر هذا البريد فور تحديث حالته.\n\n"
-        "وكالة برادايس"
+    _send_branded_email(
+        recipient_email,
+        subject=f"تأكيد استلام طلبك {order.order_number} — وكالة برادايس",
+        heading=f"مرحباً {order.customer.full_name}",
+        paragraphs=[
+            f"تم استلام طلبك رقم <strong>{order.order_number}</strong> بنجاح وهو الآن قيد المراجعة.",
+            "سنُعلمك عبر هذا البريد فور تحديث حالته.",
+        ],
     )
-    _send_email(recipient_email, subject, body)
 
 
 def send_order_status_update_email(order: Order) -> None:
@@ -81,10 +98,9 @@ def send_order_status_update_email(order: Order) -> None:
         return
 
     status_label = ORDER_STATUS_LABELS_AR.get(order.status, order.status.value)
-    subject = f"تحديث حالة طلبك {order.order_number} — وكالة برادايس"
-    body = (
-        f"مرحباً {order.customer.full_name}،\n\n"
-        f"تم تحديث حالة طلبك رقم {order.order_number} إلى: {status_label}.\n\n"
-        "وكالة برادايس"
+    _send_branded_email(
+        recipient_email,
+        subject=f"تحديث حالة طلبك {order.order_number} — وكالة برادايس",
+        heading=f"مرحباً {order.customer.full_name}",
+        paragraphs=[f"تم تحديث حالة طلبك رقم <strong>{order.order_number}</strong> إلى: {status_label}."],
     )
-    _send_email(recipient_email, subject, body)

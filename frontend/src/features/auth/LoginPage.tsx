@@ -1,6 +1,6 @@
 // File: frontend/src/features/auth/LoginPage.tsx
 
-import { LockKeyhole, LogIn, Phone } from "lucide-react";
+import { LockKeyhole, Phone } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
@@ -36,12 +36,10 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100/50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cream-50 to-cream-200/60 p-4">
       <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/70 p-8 shadow-xl backdrop-blur-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
-            <LogIn size={28} />
-          </div>
+          <img src="/logo.png" alt="شعار وكالة برادايس" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover shadow-sm" />
           <h1 className="text-xl font-bold text-slate-900">وكالة برادايس</h1>
           <p className="mt-1 text-sm text-slate-500">سجّل دخولك للمتابعة إلى لوحة التحكم</p>
         </div>
@@ -85,8 +83,8 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm
-              transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500 hover:shadow-lg
+            className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm
+              transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 hover:shadow-lg
               active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "جارٍ الدخول..." : "تسجيل الدخول"}

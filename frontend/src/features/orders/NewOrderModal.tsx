@@ -100,7 +100,7 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
             ))}
           </select>
           {selectedService?.has_active_discount && (
-            <p className="mt-1 text-xs text-emerald-600">
+            <p className="mt-1 text-xs text-navy-600">
               يشمل خصماً %{selectedService.discount_percentage} (السعر الأساسي ${selectedService.base_price_usd})
             </p>
           )}
@@ -157,7 +157,7 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
             <button
               type="button"
               onClick={addPassenger}
-              className="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700"
+              className="flex items-center gap-1 text-xs font-medium text-navy-600 hover:text-navy-700"
             >
               <Plus size={14} />
               إضافة مسافر
@@ -201,8 +201,8 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit || isSubmitting}
-          className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
-            duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+          className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
+            duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
           {isSubmitting ? "جارٍ الإنشاء..." : "إنشاء الطلب"}

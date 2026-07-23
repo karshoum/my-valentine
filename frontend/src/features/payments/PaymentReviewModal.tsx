@@ -52,7 +52,7 @@ export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentRevi
                 event.currentTarget.style.display = "none";
               }}
             />
-            <p className="mt-1 text-center text-xs text-emerald-600">فتح إشعار الدفع في نافذة جديدة</p>
+            <p className="mt-1 text-center text-xs text-navy-600">فتح إشعار الدفع في نافذة جديدة</p>
           </a>
         ) : (
           <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
@@ -85,8 +85,8 @@ export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentRevi
             type="button"
             onClick={() => handleDecision(true)}
             disabled={isSubmitting}
-            className="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
-              duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+            className="flex-1 rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
+              duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
               disabled:opacity-60"
           >
             {isSubmitting ? "جارٍ الحفظ..." : "اعتماد الدفع"}

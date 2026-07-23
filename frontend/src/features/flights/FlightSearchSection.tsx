@@ -123,7 +123,7 @@ export function FlightSearchSection({ onOfferSelected }: FlightSearchSectionProp
                 <button
                   type="button"
                   onClick={() => onOfferSelected(offer)}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-700"
+                  className="rounded-lg bg-navy-600 px-3 py-1.5 font-semibold text-white hover:bg-navy-700"
                 >
                   اختيار
                 </button>

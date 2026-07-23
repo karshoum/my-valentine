@@ -46,7 +46,7 @@ export function SubmitPaymentForm({ order, onSubmitted }: SubmitPaymentFormProps
             onClick={() => setPaymentMethod(method)}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-300 active:scale-[0.98] ${
               paymentMethod === method
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-navy-600 text-white shadow-sm"
                 : "bg-white text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -70,8 +70,8 @@ export function SubmitPaymentForm({ order, onSubmitted }: SubmitPaymentFormProps
           type="file"
           accept="image/jpeg,image/png,image/webp,application/pdf"
           onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
-          className="w-full text-sm text-slate-600 file:me-3 file:rounded-lg file:border-0 file:bg-emerald-50
-            file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-emerald-700"
+          className="w-full text-sm text-slate-600 file:me-3 file:rounded-lg file:border-0 file:bg-navy-50
+            file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-navy-700"
         />
       </div>
 
@@ -81,8 +81,8 @@ export function SubmitPaymentForm({ order, onSubmitted }: SubmitPaymentFormProps
         type="button"
         onClick={handleSubmit}
         disabled={!canSubmit || isSubmitting}
-        className="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all
-          duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+        className="w-full rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white transition-all
+          duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
           disabled:opacity-60"
       >
         {isSubmitting ? "جارٍ الرفع..." : "رفع إثبات الدفع"}

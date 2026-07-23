@@ -36,7 +36,7 @@ export function ProfilePage() {
 
       <div className="rounded-2xl border border-white/20 bg-white/70 p-5 shadow-sm backdrop-blur-md">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-500/10 text-navy-600">
             <CircleUser size={24} />
           </div>
           <div>

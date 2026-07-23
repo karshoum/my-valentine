@@ -31,9 +31,9 @@ export function AgentWalletSection({ agent, canDeposit, onWalletChanged }: Agent
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-        <p className="text-xs text-emerald-700">الرصيد الحالي</p>
-        <p className="text-2xl font-bold text-emerald-800">${agent.wallet_balance}</p>
+      <div className="rounded-xl border border-navy-200 bg-navy-50 p-4">
+        <p className="text-xs text-navy-700">الرصيد الحالي</p>
+        <p className="text-2xl font-bold text-navy-800">${agent.wallet_balance}</p>
       </div>
 
       {canDeposit && (
@@ -59,8 +59,8 @@ export function AgentWalletSection({ agent, canDeposit, onWalletChanged }: Agent
             type="button"
             onClick={handleDeposit}
             disabled={isDepositing}
-            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all
-              duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+            className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white transition-all
+              duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
               disabled:opacity-60"
           >
             {isDepositing ? "جارٍ الإيداع..." : "تأكيد الإيداع"}
@@ -88,7 +88,7 @@ export function AgentWalletSection({ agent, canDeposit, onWalletChanged }: Agent
                 </div>
                 <p
                   className={`font-semibold ${
-                    log.transaction_type === "deduction" ? "text-rose-600" : "text-emerald-600"
+                    log.transaction_type === "deduction" ? "text-rose-600" : "text-navy-600"
                   }`}
                 >
                   {log.transaction_type === "deduction" ? "-" : "+"}${log.amount}

@@ -63,7 +63,7 @@ export function EditServiceModal({ service, onClose, onUpdated }: EditServiceMod
             type="checkbox"
             checked={isActive}
             onChange={(event) => setIsActive(event.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500/40"
+            className="h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500/40"
           />
           الخدمة مفعَّلة (تظهر للعملاء)
         </label>
@@ -74,8 +74,8 @@ export function EditServiceModal({ service, onClose, onUpdated }: EditServiceMod
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || !title}
-          className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
-            duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+          className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
+            duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
           {isSubmitting ? "جارٍ الحفظ..." : "حفظ التعديلات"}

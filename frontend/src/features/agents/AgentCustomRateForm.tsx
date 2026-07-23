@@ -49,7 +49,7 @@ export function AgentCustomRateForm({ agentId }: { agentId: number }) {
 
       {error && <p className="text-xs text-rose-600">{error}</p>}
       {lastSavedRate && (
-        <p className="text-xs text-emerald-600">تم حفظ السعر الخاص: ${lastSavedRate.custom_price_usd}</p>
+        <p className="text-xs text-navy-600">تم حفظ السعر الخاص: ${lastSavedRate.custom_price_usd}</p>
       )}
 
       <button

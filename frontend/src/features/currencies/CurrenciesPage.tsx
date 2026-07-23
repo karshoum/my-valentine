@@ -35,8 +35,8 @@ export function CurrenciesPage() {
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white
-            transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98]"
+          className="flex items-center gap-1.5 rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white
+            transition-all duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98]"
         >
           <Plus size={16} />
           إضافة عملة

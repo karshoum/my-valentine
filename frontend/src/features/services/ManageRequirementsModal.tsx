@@ -96,7 +96,7 @@ export function ManageRequirementsModal({ service, onClose, onChanged }: ManageR
             onClick={handleAdd}
             disabled={isSubmitting || !newRequirementText.trim()}
             title="إضافة"
-            className="rounded-lg bg-emerald-600 p-2 text-white transition-colors hover:bg-emerald-700
+            className="rounded-lg bg-navy-600 p-2 text-white transition-colors hover:bg-navy-700
               disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus size={16} />

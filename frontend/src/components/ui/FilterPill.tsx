@@ -13,7 +13,7 @@ export function FilterPill({ label, isActive, onClick }: FilterPillProps) {
       type="button"
       onClick={onClick}
       className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-300 active:scale-[0.98] ${
-        isActive ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+        isActive ? "bg-navy-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
       }`}
     >
       {label}

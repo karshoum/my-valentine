@@ -35,7 +35,7 @@ export function CurrenciesTable({ currencies, onSelectCurrency }: CurrenciesTabl
               <td className="px-4 py-3 text-slate-600">{currency.rate_to_usd}</td>
               <td className="px-4 py-3 text-slate-500">{new Date(currency.updated_at).toLocaleString("ar")}</td>
               <td className="px-4 py-3">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700">
                   <Pencil size={12} />
                   تحديث
                 </span>

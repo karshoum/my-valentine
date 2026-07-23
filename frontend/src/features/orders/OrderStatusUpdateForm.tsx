@@ -44,7 +44,7 @@ export function OrderStatusUpdateForm({ order, onUpdated }: OrderStatusUpdateFor
             onClick={() => setSelectedStatus(status)}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-300 active:scale-[0.98] ${
               selectedStatus === status
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-navy-600 text-white shadow-sm"
                 : "bg-white text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -67,8 +67,8 @@ export function OrderStatusUpdateForm({ order, onUpdated }: OrderStatusUpdateFor
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all
-          duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+        className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white transition-all
+          duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
           disabled:opacity-60"
       >
         {isSubmitting ? "جارٍ التحديث..." : "تأكيد التحديث"}

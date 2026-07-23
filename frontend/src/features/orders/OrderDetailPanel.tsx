@@ -96,7 +96,7 @@ export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetail
         {order.status === "pending" && (
           <section className="mb-6">
             {hasJustSubmittedPayment ? (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+              <div className="flex items-center gap-2 rounded-xl border border-navy-200 bg-navy-50 p-4 text-sm text-navy-700">
                 <CheckCircle2 size={18} />
                 تم رفع إثبات الدفع بنجاح، بانتظار المراجعة اليدوية من الموظف/المدير.
               </div>
@@ -154,7 +154,7 @@ export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetail
         {canRequestRefund && (
           <section className="mb-6">
             {hasJustRequestedRefund ? (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+              <div className="flex items-center gap-2 rounded-xl border border-navy-200 bg-navy-50 p-4 text-sm text-navy-700">
                 <CheckCircle2 size={18} />
                 تم تقديم طلب الاسترداد بنجاح، بانتظار مراجعة المدير.
               </div>

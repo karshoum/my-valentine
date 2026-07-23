@@ -60,7 +60,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                   {service.has_active_discount ? (
                     <span className="flex items-center gap-1.5">
                       <span className="text-slate-400 line-through">${service.base_price_usd}</span>
-                      <span className="font-semibold text-emerald-700">${service.effective_price_usd}</span>
+                      <span className="font-semibold text-navy-700">${service.effective_price_usd}</span>
                       <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
                         %{service.discount_percentage} خصم
                       </span>
@@ -73,7 +73,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                   <span
                     className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
                       service.is_active
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        ? "border-navy-200 bg-navy-50 text-navy-700"
                         : "border-slate-200 bg-slate-100 text-slate-500"
                     }`}
                   >
@@ -86,7 +86,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                       type="button"
                       onClick={() => onEdit(service)}
                       title="تعديل"
-                      className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+                      className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-navy-50 hover:text-navy-700"
                     >
                       <Pencil size={15} />
                     </button>

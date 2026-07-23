@@ -62,14 +62,14 @@ export function ChangePasswordForm() {
 
         {validationError && <p className="text-xs text-rose-600">{validationError}</p>}
         {error && <p className="text-xs text-rose-600">{error}</p>}
-        {successMessage && <p className="text-xs text-emerald-600">{successMessage}</p>}
+        {successMessage && <p className="text-xs text-navy-600">{successMessage}</p>}
 
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || !currentPassword || !newPassword || !confirmPassword}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all
-            duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+          className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white transition-all
+            duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
           {isSubmitting ? "جارٍ التحديث..." : "تغيير كلمة المرور"}

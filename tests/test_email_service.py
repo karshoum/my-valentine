@@ -1,6 +1,6 @@
 # File: tests/test_email_service.py
 
-"""اختبارات خدمة إرسال إشعارات الإيميل: التجاوز الصامت بلا إعدادات، الإرسال الفعلي، وتحمّل فشل SMTP."""
+"""اختبارات خدمة إرسال إشعارات الإيميل: التجاوز الصامت بلا إعدادات، الإرسال الفعلي (شامل الشعار)، وتحمّل فشل SMTP."""
 
 from decimal import Decimal
 
@@ -9,6 +9,15 @@ import pytest
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.services import email_service
+
+
+def _decoded_text_parts(message) -> str:
+    """يستخرج ويفكّ ترميز كل الأجزاء النصية (plain/html) من رسالة MIME متعددة الأجزاء، لتسهيل الفحص في الاختبارات."""
+    return "".join(
+        part.get_payload(decode=True).decode("utf-8")
+        for part in message.walk()
+        if part.get_content_maintype() == "text"
+    )
 
 
 @pytest.fixture()
@@ -33,7 +42,7 @@ def test_send_email_is_skipped_silently_without_smtp_host(monkeypatch, sample_or
     email_service.send_order_confirmation_email(sample_order)  # لا يجب أن يرفع أي استثناء
 
 
-def test_send_order_confirmation_email_sends_via_smtp(monkeypatch, sample_order):
+def test_send_order_confirmation_email_sends_via_smtp_with_logo(monkeypatch, sample_order):
     sent_messages = []
 
     class FakeSMTP:
@@ -53,7 +62,7 @@ def test_send_order_confirmation_email_sends_via_smtp(monkeypatch, sample_order)
             sent_messages.append({"login": (username, password)})
 
         def send_message(self, message):
-            sent_messages.append({"to": message["To"], "subject": message["Subject"]})
+            sent_messages.append({"message": message})
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
     monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
@@ -61,10 +70,13 @@ def test_send_order_confirmation_email_sends_via_smtp(monkeypatch, sample_order)
 
     email_service.send_order_confirmation_email(sample_order)
 
-    sent_to_customer = [m for m in sent_messages if "to" in m]
-    assert len(sent_to_customer) == 1
-    assert sent_to_customer[0]["to"] == sample_order.customer.email
-    assert sample_order.order_number in sent_to_customer[0]["subject"]
+    sent = [m["message"] for m in sent_messages if "message" in m]
+    assert len(sent) == 1
+    message = sent[0]
+    assert message["To"] == sample_order.customer.email
+    assert sample_order.order_number in message["Subject"]
+    # الشعار مُرفَق كصورة inline بمعرّف Content-ID ثابت
+    assert f"<{email_service.LOGO_CONTENT_ID}>" in message.as_string()
 
 
 def test_send_order_status_update_email_uses_arabic_label(monkeypatch, sample_order):
@@ -84,7 +96,7 @@ def test_send_order_status_update_email_uses_arabic_label(monkeypatch, sample_or
             pass
 
         def send_message(self, message):
-            sent_messages.append(message.get_content())
+            sent_messages.append(message)
 
     monkeypatch.setattr(email_service.settings, "SMTP_HOST", "smtp.example.com")
     monkeypatch.setattr(email_service.settings, "SMTP_FROM_EMAIL", "no-reply@baradise.example")
@@ -94,7 +106,7 @@ def test_send_order_status_update_email_uses_arabic_label(monkeypatch, sample_or
     sample_order.status = OrderStatus.processing
     email_service.send_order_status_update_email(sample_order)
 
-    assert "تم تأكيد الدفع" in sent_messages[0]
+    assert "تم تأكيد الدفع" in _decoded_text_parts(sent_messages[0])
 
 
 def test_smtp_connection_failure_does_not_raise(monkeypatch, sample_order):
@@ -139,3 +151,11 @@ def test_order_without_customer_email_is_skipped(monkeypatch, db_session, sample
     monkeypatch.setattr(email_service.smtplib, "SMTP", _fail_if_called)
 
     email_service.send_order_confirmation_email(order)
+
+
+def test_load_logo_bytes_reads_real_file():
+    from app.services.email_templates import load_logo_bytes
+
+    logo_bytes = load_logo_bytes()
+    assert logo_bytes is not None
+    assert logo_bytes.startswith(b"\x89PNG")

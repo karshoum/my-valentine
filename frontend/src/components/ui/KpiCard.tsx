@@ -13,7 +13,7 @@ export interface KpiCardProps {
 }
 
 const accentClasses = {
-  emerald: "bg-emerald-500/10 text-emerald-600",
+  emerald: "bg-navy-500/10 text-navy-600",
   violet: "bg-violet-500/10 text-violet-600",
 };
 
@@ -49,7 +49,7 @@ export function KpiCard({ label, value, changePercent, icon: Icon, accent = "eme
         {changePercent !== undefined && (
           <span
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-              isPositive ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+              isPositive ? "bg-navy-50 text-navy-700" : "bg-rose-50 text-rose-700"
             }`}
           >
             {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -68,7 +68,7 @@ export function KpiCard({ label, value, changePercent, icon: Icon, accent = "eme
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className={accent === "emerald" ? "text-emerald-500" : "text-violet-500"}
+            className={accent === "emerald" ? "text-navy-500" : "text-violet-500"}
           />
         </svg>
       )}

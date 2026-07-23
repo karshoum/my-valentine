@@ -22,9 +22,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
 
   const brand = (
     <div className="mb-6 flex items-center gap-2 px-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 font-bold">
-        ب
-      </div>
+      <img src="/logo.png" alt="شعار وكالة برادايس" className="h-9 w-9 rounded-xl object-cover" />
       <span className="text-sm font-bold text-slate-800">وكالة برادايس</span>
     </div>
   );
@@ -38,10 +36,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
           end={item.path === "/"}
           onClick={onMobileClose}
           className={({ isActive }) =>
-            `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+            `flex items-center gap-3 rounded-xl border-e-2 px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
               isActive
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-slate-600 hover:bg-slate-50/80 hover:text-slate-900"
+                ? "border-gold-500 bg-navy-50 text-navy-700"
+                : "border-transparent text-slate-600 hover:bg-slate-50/80 hover:text-slate-900"
             }`
           }
         >

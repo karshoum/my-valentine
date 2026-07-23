@@ -55,8 +55,8 @@ export function CreateCurrencyModal({ onClose, onCreated }: CreateCurrencyModalP
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
-            duration-300 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed
+          className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
+            duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
           {isSubmitting ? "جارٍ الإضافة..." : "إضافة العملة"}
