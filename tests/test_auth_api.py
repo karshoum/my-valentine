@@ -62,3 +62,28 @@ def test_login_success_and_wrong_password(client):
 def test_protected_endpoint_requires_token(client):
     response = client.get("/api/v1/users/me")
     assert response.status_code == 401
+
+
+def test_repeated_failed_logins_get_locked_out(client):
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "مستخدم محاولات متكررة",
+            "email": "lockout-user@baradis.example",
+            "phone": "0944444444",
+            "password": "CorrectPass@123",
+        },
+    )
+
+    for _ in range(5):
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": "lockout-user@baradis.example", "password": "WrongPassword"},
+        )
+        assert response.status_code == 401
+
+    locked_response = client.post(
+        "/api/v1/auth/login",
+        json={"identifier": "lockout-user@baradis.example", "password": "CorrectPass@123"},
+    )
+    assert locked_response.status_code == 429

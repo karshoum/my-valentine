@@ -25,4 +25,5 @@ jobs:
           DATABASE_URL: "sqlite:///:memory:"
           JWT_SECRET_KEY: "ci-test-secret"
           SIGNED_URL_SECRET: "ci-signed-url-secret"
+          CORS_ORIGINS: '["http://localhost:3000"]'
         run: pytest -v

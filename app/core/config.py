@@ -8,8 +8,9 @@ class Settings(BaseSettings):
     إعدادات التطبيق المقروءة من متغيرات البيئة أو ملف .env.
 
     كل الحقول بلا قيمة افتراضية (DATABASE_URL, JWT_SECRET_KEY,
-    SIGNED_URL_SECRET) إلزامية ويجب توفيرها قبل تشغيل التطبيق؛ غيابها
-    يوقف الإقلاع فوراً بدلاً من العمل بقيم غير آمنة ضمنية.
+    SIGNED_URL_SECRET, CORS_ORIGINS) إلزامية ويجب توفيرها قبل تشغيل
+    التطبيق؛ غيابها يوقف الإقلاع فوراً بدلاً من العمل بقيم غير آمنة
+    ضمنية (مثال: CORS مفتوح للجميع).
     """
 
     APP_NAME: str = "Wakalat Baradis Platform"
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     SIGNED_URL_SECRET: str
     SIGNED_URL_EXPIRE_SECONDS: int = 600
 
-    CORS_ORIGINS: list[str] = ["*"]
+    CORS_ORIGINS: list[str]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

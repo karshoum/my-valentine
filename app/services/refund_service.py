@@ -29,7 +29,8 @@ def create_refund_request(db: Session, order_id: int, current_user: User, payloa
 
     Raises:
         AppException: 400 إذا كانت حالة الطلب لا تسمح بطلب استرداد، أو
-        إذا تجاوز المبلغ المطلوب قيمة الطلب الأصلية.
+        إذا تجاوز المبلغ المطلوب قيمة الطلب الأصلية، أو 409 إذا كان
+        هناك طلب استرداد آخر قيد المراجعة بالفعل لنفس الطلب.
     """
     order = order_service.get_order_with_access_check(db, order_id, current_user)
 
@@ -38,6 +39,14 @@ def create_refund_request(db: Session, order_id: int, current_user: User, payloa
 
     if payload.refund_amount > order.total_amount:
         raise AppException("مبلغ الاسترداد المطلوب أكبر من قيمة الطلب", status_code=400)
+
+    existing_open_refund = (
+        db.query(Refund)
+        .filter(Refund.order_id == order.id, Refund.status.in_((RefundStatus.pending, RefundStatus.approved)))
+        .first()
+    )
+    if existing_open_refund:
+        raise AppException("يوجد طلب استرداد آخر قيد المراجعة لهذا الطلب بالفعل", status_code=409)
 
     refund = Refund(
         order_id=order.id,

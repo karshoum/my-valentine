@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
+from app.core.rate_limit import check_not_locked_out, record_failed_attempt, reset_attempts
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.enums import UserRole
 from app.models.user import User
@@ -57,19 +58,24 @@ def authenticate(db: Session, payload: LoginRequest) -> TokenResponse:
         TokenResponse: التوكن الموقّع مع دور المستخدم واسمه.
 
     Raises:
-        AppException: 401 إذا كانت بيانات الدخول خاطئة، أو 403 إذا كان
-        الحساب موقوفاً.
+        AppException: 401 إذا كانت بيانات الدخول خاطئة، 403 إذا كان
+        الحساب موقوفاً، أو 429 إذا تجاوزت محاولات الدخول الفاشلة الحد
+        المسموح خلال آخر 15 دقيقة.
     """
+    check_not_locked_out(payload.identifier)
+
     user = (
         db.query(User)
         .filter(or_(User.email == payload.identifier, User.phone == payload.identifier))
         .first()
     )
     if not user or not verify_password(payload.password, user.password_hash):
+        record_failed_attempt(payload.identifier)
         raise AppException("بيانات الدخول غير صحيحة", status_code=401)
     if not user.is_active:
         raise AppException("هذا الحساب موقوف، يرجى التواصل مع الإدارة", status_code=403)
 
+    reset_attempts(payload.identifier)
     token = create_access_token({"sub": str(user.id), "role": user.role.value})
     return TokenResponse(
         access_token=token,

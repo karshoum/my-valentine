@@ -34,6 +34,19 @@ def test_refund_amount_exceeding_order_total_raises(db_session, usd_currency, cu
     assert exc_info.value.status_code == 400
 
 
+def test_duplicate_pending_refund_request_raises(db_session, usd_currency, customer_user, sample_service):
+    order = _make_processing_order(db_session, customer_user, sample_service)
+    refund_service.create_refund_request(
+        db_session, order.id, customer_user, RefundCreateRequest(refund_amount=Decimal("100"))
+    )
+
+    with pytest.raises(AppException) as exc_info:
+        refund_service.create_refund_request(
+            db_session, order.id, customer_user, RefundCreateRequest(refund_amount=Decimal("50"))
+        )
+    assert exc_info.value.status_code == 409
+
+
 def test_process_refund_logs_order_status_change(db_session, usd_currency, admin_user, sample_service):
     user, agent = make_agent(db_session, PaymentMode.prepaid_wallet, wallet_balance=Decimal("1000"))
     order = _make_processing_order(db_session, user, sample_service)
