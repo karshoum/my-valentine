@@ -23,12 +23,13 @@ class RefundDecisionRequest(BaseModel):
 
 
 class RefundOut(BaseModel):
-    """تمثيل طلب استرداد كامل في الاستجابات."""
+    """تمثيل طلب استرداد كامل في الاستجابات، مع رقم الطلب المرتبط."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     order_id: int
+    order_number: str
     refund_amount: Decimal
     currency_code: str | None
     reason: str | None

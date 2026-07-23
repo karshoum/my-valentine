@@ -26,3 +26,8 @@ class Refund(Base):
     processed_at = Column(DateTime(timezone=True), nullable=True)
 
     order = relationship("Order", back_populates="refunds")
+
+    @property
+    def order_number(self) -> str:
+        """يُعيد رقم الطلب المرتبط بهذا الاسترداد، لعرضه في شاشة مراجعة المستردات."""
+        return self.order.order_number

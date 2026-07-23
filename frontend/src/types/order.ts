@@ -1,6 +1,7 @@
 // File: frontend/src/types/order.ts
 
 import type { OrderStatus } from "@/types/enums";
+import type { RefundOut } from "@/types/refund";
 
 /** مطابق لـ app.schemas.order.OrderPassengerIn. */
 export interface OrderPassengerIn {
@@ -52,4 +53,5 @@ export interface OrderOut {
   deliverable_signed_url: string | null;
   passengers: OrderPassengerOut[];
   status_logs: OrderStatusLogOut[];
+  refunds: RefundOut[];
 }

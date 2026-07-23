@@ -4,14 +4,25 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.permissions import require_admin
+from app.core.permissions import require_admin, require_staff
 from app.core.security import get_current_user
+from app.models.enums import RefundStatus
 from app.models.refund import Refund
 from app.models.user import User
 from app.schemas.refund import RefundCreateRequest, RefundDecisionRequest, RefundOut
 from app.services import refund_service
 
 router = APIRouter(prefix="/api/v1/refunds", tags=["المستردات"])
+
+
+@router.get("", response_model=list[RefundOut])
+def list_refunds(
+    status_filter: RefundStatus | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_staff),
+) -> list[Refund]:
+    """يُعيد كل طلبات الاسترداد لأغراض المراجعة، مع تصفية اختيارية حسب الحالة (موظف أو مدير فقط)."""
+    return refund_service.list_refunds(db, status_filter)
 
 
 @router.post("/orders/{order_id}", response_model=RefundOut, status_code=status.HTTP_201_CREATED)

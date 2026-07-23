@@ -64,3 +64,31 @@ def test_process_refund_logs_order_status_change(db_session, usd_currency, admin
     assert len(order.status_logs) == logs_before + 1
     assert order.status_logs[-1].new_status == OrderStatus.refunded
     assert order.status_logs[-1].changed_by == admin_user.id
+
+
+def test_refund_out_exposes_order_number(db_session, usd_currency, customer_user, sample_service):
+    order = _make_processing_order(db_session, customer_user, sample_service)
+    refund = refund_service.create_refund_request(
+        db_session, order.id, customer_user, RefundCreateRequest(refund_amount=Decimal("100"))
+    )
+    assert refund.order_number == order.order_number
+
+
+def test_list_refunds_filters_by_status(db_session, usd_currency, customer_user, admin_user, sample_service):
+    order_one = _make_processing_order(db_session, customer_user, sample_service)
+    order_two = _make_processing_order(db_session, customer_user, sample_service)
+
+    refund_one = refund_service.create_refund_request(
+        db_session, order_one.id, customer_user, RefundCreateRequest(refund_amount=Decimal("100"))
+    )
+    refund_two = refund_service.create_refund_request(
+        db_session, order_two.id, customer_user, RefundCreateRequest(refund_amount=Decimal("50"))
+    )
+    refund_service.decline_refund(db_session, refund_two.id, admin_user, "غير مستحق")
+
+    pending_only = refund_service.list_refunds(db_session, RefundStatus.pending)
+    assert len(pending_only) == 1
+    assert pending_only[0].id == refund_one.id
+
+    all_refunds = refund_service.list_refunds(db_session)
+    assert len(all_refunds) == 2

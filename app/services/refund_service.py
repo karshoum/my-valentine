@@ -69,6 +69,24 @@ def get_refund_or_404(db: Session, refund_id: int) -> Refund:
     return refund
 
 
+def list_refunds(db: Session, status_filter: RefundStatus | None = None) -> list[Refund]:
+    """
+    يُعيد كل طلبات الاسترداد لأغراض مراجعة الموظف/المدير، مع تصفية
+    اختيارية حسب الحالة (لعرض المعلَّقة فقط عادة، وهي طابور عمل المراجعة).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        status_filter: حالة اختيارية للتصفية بها (مثال: RefundStatus.pending).
+
+    Returns:
+        list[Refund]: طلبات الاسترداد مرتبة تصاعدياً حسب الأقدم أولاً.
+    """
+    query = db.query(Refund)
+    if status_filter:
+        query = query.filter(Refund.status == status_filter)
+    return query.order_by(Refund.id.asc()).all()
+
+
 def approve_refund(db: Session, refund_id: int, admin_user: User) -> Refund:
     """
     يعتمد طلب استرداد معلَّقاً (خطوة لازمة قبل process_refund).

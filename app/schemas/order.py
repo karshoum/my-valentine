@@ -6,6 +6,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import OrderStatus
+from app.schemas.refund import RefundOut
 
 
 class OrderPassengerIn(BaseModel):
@@ -70,3 +71,4 @@ class OrderOut(BaseModel):
     deliverable_signed_url: str | None = None
     passengers: list[OrderPassengerOut] = []
     status_logs: list[OrderStatusLogOut] = []
+    refunds: list[RefundOut] = []
