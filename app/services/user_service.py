@@ -4,7 +4,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.models.enums import UserRole
 from app.models.user import User
 from app.schemas.user import StaffCreateRequest
@@ -122,6 +122,41 @@ def set_user_active_status(db: Session, user_id: int, is_active: bool, changed_b
         user_id=changed_by.id,
         action="update_user_status",
         details={"target_user_id": user.id, "is_active": is_active},
+    )
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> User:
+    """
+    يغيّر كلمة مرور المستخدم الحالي بعد التحقق من كلمة المرور القديمة.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        user: المستخدم الحالي (صاحب الطلب).
+        current_password: كلمة المرور الحالية للتحقق منها.
+        new_password: كلمة المرور الجديدة المطلوبة.
+
+    Returns:
+        User: المستخدم بعد تحديث كلمة مروره.
+
+    Raises:
+        AppException: 400 إذا كانت كلمة المرور الحالية خاطئة، أو إذا
+        كانت كلمة المرور الجديدة مطابقة للقديمة.
+    """
+    if not verify_password(current_password, user.password_hash):
+        raise AppException("كلمة المرور الحالية غير صحيحة", status_code=400)
+
+    if verify_password(new_password, user.password_hash):
+        raise AppException("كلمة المرور الجديدة يجب أن تختلف عن الحالية", status_code=400)
+
+    user.password_hash = hash_password(new_password)
+    audit_service.log_action(
+        db,
+        user_id=user.id,
+        action="change_own_password",
+        details={"user_id": user.id},
     )
     db.commit()
     db.refresh(user)

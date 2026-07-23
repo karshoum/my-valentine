@@ -26,3 +26,9 @@ export interface LoginRequest {
   identifier: string;
   password: string;
 }
+
+/** مطابق لـ app.schemas.user.PasswordChangeRequest. */
+export interface PasswordChangeRequest {
+  current_password: string;
+  new_password: string;
+}

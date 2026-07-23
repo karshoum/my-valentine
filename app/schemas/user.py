@@ -23,6 +23,13 @@ class UserStatusUpdateRequest(BaseModel):
     is_active: bool
 
 
+class PasswordChangeRequest(BaseModel):
+    """طلب تغيير كلمة المرور للمستخدم الحالي (يتطلب كلمة المرور القديمة)."""
+
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserOut(BaseModel):
     """تمثيل مستخدم آمن للإرجاع في الاستجابات (بدون password_hash)."""
 

@@ -8,7 +8,7 @@ from app.core.permissions import require_admin
 from app.core.security import get_current_user
 from app.models.enums import UserRole
 from app.models.user import User
-from app.schemas.user import StaffCreateRequest, UserOut, UserStatusUpdateRequest
+from app.schemas.user import PasswordChangeRequest, StaffCreateRequest, UserOut, UserStatusUpdateRequest
 from app.services import user_service
 
 router = APIRouter(prefix="/api/v1/users", tags=["المستخدمون"])
@@ -18,6 +18,16 @@ router = APIRouter(prefix="/api/v1/users", tags=["المستخدمون"])
 def get_me(current_user: User = Depends(get_current_user)) -> User:
     """يُعيد بيانات المستخدم الحالي المُستخرَج من توكن الدخول."""
     return current_user
+
+
+@router.patch("/me/password", response_model=UserOut)
+def change_my_password(
+    payload: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """يغيّر كلمة مرور المستخدم الحالي بعد التحقق من كلمة المرور القديمة."""
+    return user_service.change_password(db, current_user, payload.current_password, payload.new_password)
 
 
 @router.post("/staff", response_model=UserOut, status_code=status.HTTP_201_CREATED)
