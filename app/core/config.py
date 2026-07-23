@@ -26,12 +26,12 @@ class Settings(BaseSettings):
     # فعلية من Google Cloud Console؛ endpoint الدخول يرفض الطلب بوضوح قبل ذلك.
     GOOGLE_CLIENT_ID: str | None = None
 
-    # بحث حجوزات الطيران عبر Amadeus for Developers (اختياري): تبقى None
-    # حتى يُنشئ الفريق حساب Amadeus مجانياً ويوفّر بيانات اعتماد Test
-    # (أو Production لاحقاً)؛ endpoint البحث يرفض الطلب بوضوح قبل ذلك.
-    AMADEUS_API_KEY: str | None = None
-    AMADEUS_API_SECRET: str | None = None
-    AMADEUS_BASE_URL: str = "https://test.api.amadeus.com"
+    # بحث حجوزات الطيران عبر Duffel (اختياري): تبقى None حتى يُنشئ
+    # الفريق حساب Duffel مجانياً ويوفّر مفتاح duffel_test (أو مفتاح
+    # إنتاج حقيقي لاحقاً)؛ endpoint البحث يرفض الطلب بوضوح قبل ذلك.
+    DUFFEL_API_KEY: str | None = None
+    DUFFEL_BASE_URL: str = "https://api.duffel.com"
+    DUFFEL_VERSION: str = "v2"
 
     # إرسال إشعارات الإيميل (اختياري): تبقى كلها None حتى يُوفَّر حساب
     # SMTP فعلي؛ عندها يُرسَل تأكيد الطلب وتحديثات الحالة تلقائياً، وأي

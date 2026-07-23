@@ -1,6 +1,6 @@
 # File: tests/test_flight_search_service.py
 
-"""اختبارات تحويل استجابة Amadeus الخام إلى عروض رحلات واضحة، مع تطبيق رسم الحجز."""
+"""اختبارات تحويل استجابة Duffel الخام إلى عروض رحلات واضحة، مع تطبيق رسم الحجز واستبعاد العروض غير المُسعَّرة بالدولار."""
 
 from datetime import date
 from decimal import Decimal
@@ -9,45 +9,73 @@ from app.models.enums import FlightBookingFeeType
 from app.schemas.flight_booking import FlightBookingFeeUpdateRequest
 from app.services import flight_booking_service, flight_search_service
 
-_FAKE_AMADEUS_RESPONSE = {
-    "data": [
-        {
-            "price": {"grandTotal": "340.00", "currency": "USD"},
-            "itineraries": [
-                {
-                    "duration": "PT9H30M",
-                    "segments": [
-                        {
-                            "departure": {"iataCode": "DMM", "at": "2026-08-01T10:00:00"},
-                            "arrival": {"iataCode": "IST", "at": "2026-08-01T15:30:00"},
-                            "carrierCode": "TK",
-                        }
-                    ],
-                }
-            ],
-        },
-        {
-            "price": {"grandTotal": "410.50", "currency": "USD"},
-            "itineraries": [
-                {
-                    "duration": "PT14H15M",
-                    "segments": [
-                        {
-                            "departure": {"iataCode": "DMM", "at": "2026-08-01T08:00:00"},
-                            "arrival": {"iataCode": "CAI", "at": "2026-08-01T11:00:00"},
-                            "carrierCode": "MS",
-                        },
-                        {
-                            "departure": {"iataCode": "CAI", "at": "2026-08-01T13:00:00"},
-                            "arrival": {"iataCode": "IST", "at": "2026-08-01T22:15:00"},
-                            "carrierCode": "MS",
-                        },
-                    ],
-                }
-            ],
-        },
-    ],
-    "dictionaries": {"carriers": {"TK": "TURKISH AIRLINES", "MS": "EGYPTAIR"}},
+_FAKE_DUFFEL_RESPONSE = {
+    "data": {
+        "id": "orq_fake",
+        "offers": [
+            {
+                "id": "off_direct",
+                "total_amount": "340.00",
+                "total_currency": "USD",
+                "slices": [
+                    {
+                        "segments": [
+                            {
+                                "origin": {"iata_code": "DMM"},
+                                "destination": {"iata_code": "IST"},
+                                "departing_at": "2026-08-01T10:00:00",
+                                "arriving_at": "2026-08-01T19:30:00",
+                                "operating_carrier": {"iata_code": "TK", "name": "Turkish Airlines"},
+                            }
+                        ]
+                    }
+                ],
+            },
+            {
+                "id": "off_connecting",
+                "total_amount": "410.50",
+                "total_currency": "USD",
+                "slices": [
+                    {
+                        "segments": [
+                            {
+                                "origin": {"iata_code": "DMM"},
+                                "destination": {"iata_code": "CAI"},
+                                "departing_at": "2026-08-01T08:00:00",
+                                "arriving_at": "2026-08-01T11:00:00",
+                                "operating_carrier": {"iata_code": "MS", "name": "EGYPTAIR"},
+                            },
+                            {
+                                "origin": {"iata_code": "CAI"},
+                                "destination": {"iata_code": "IST"},
+                                "departing_at": "2026-08-01T13:00:00",
+                                "arriving_at": "2026-08-01T22:15:00",
+                                "operating_carrier": {"iata_code": "MS", "name": "EGYPTAIR"},
+                            },
+                        ]
+                    }
+                ],
+            },
+            {
+                "id": "off_non_usd",
+                "total_amount": "300.00",
+                "total_currency": "GBP",
+                "slices": [
+                    {
+                        "segments": [
+                            {
+                                "origin": {"iata_code": "DMM"},
+                                "destination": {"iata_code": "IST"},
+                                "departing_at": "2026-08-01T09:00:00",
+                                "arriving_at": "2026-08-01T18:00:00",
+                                "operating_carrier": {"iata_code": "BA", "name": "British Airways"},
+                            }
+                        ]
+                    }
+                ],
+            },
+        ],
+    }
 }
 
 
@@ -58,18 +86,18 @@ def test_search_flights_parses_direct_and_connecting_offers(db_session, admin_us
         admin_user,
     )
     monkeypatch.setattr(
-        flight_search_service.amadeus_client,
+        flight_search_service.duffel_client,
         "search_flight_offers",
-        lambda *args, **kwargs: _FAKE_AMADEUS_RESPONSE,
+        lambda *args, **kwargs: _FAKE_DUFFEL_RESPONSE,
     )
 
     offers = flight_search_service.search_flights(db_session, "dmm", "ist", date(2026, 8, 1), None, 1)
 
-    assert len(offers) == 2
+    assert len(offers) == 2  # العرض الثالث بالجنيه الإسترليني مُستبعَد
 
     direct_offer = offers[0]
     assert direct_offer.airline_code == "TK"
-    assert direct_offer.airline_name == "TURKISH AIRLINES"
+    assert direct_offer.airline_name == "Turkish Airlines"
     assert direct_offer.origin == "DMM"
     assert direct_offer.destination == "IST"
     assert direct_offer.stops == 0
@@ -84,29 +112,23 @@ def test_search_flights_parses_direct_and_connecting_offers(db_session, admin_us
     assert connecting_offer.total_price_usd == Decimal("425.50")
 
 
-def test_unknown_carrier_code_falls_back_to_code_itself(db_session, monkeypatch):
-    response = {
-        "data": [
-            {
-                "price": {"grandTotal": "100.00", "currency": "USD"},
-                "itineraries": [
-                    {
-                        "duration": "PT2H0M",
-                        "segments": [
-                            {
-                                "departure": {"iataCode": "DMM", "at": "2026-08-01T10:00:00"},
-                                "arrival": {"iataCode": "RUH", "at": "2026-08-01T12:00:00"},
-                                "carrierCode": "XX",
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-        "dictionaries": {"carriers": {}},
-    }
-    monkeypatch.setattr(flight_search_service.amadeus_client, "search_flight_offers", lambda *a, **k: response)
+def test_non_usd_offers_are_excluded(db_session, monkeypatch):
+    monkeypatch.setattr(
+        flight_search_service.duffel_client, "search_flight_offers", lambda *a, **k: _FAKE_DUFFEL_RESPONSE
+    )
+
+    offers = flight_search_service.search_flights(db_session, "DMM", "IST", date(2026, 8, 1), None, 1)
+
+    assert all(offer.airline_code != "BA" for offer in offers)
+
+
+def test_search_flights_returns_empty_list_when_no_offers(db_session, monkeypatch):
+    monkeypatch.setattr(
+        flight_search_service.duffel_client,
+        "search_flight_offers",
+        lambda *a, **k: {"data": {"id": "orq_empty", "offers": []}},
+    )
 
     offers = flight_search_service.search_flights(db_session, "DMM", "RUH", date(2026, 8, 1), None, 1)
 
-    assert offers[0].airline_name == "XX"
+    assert offers == []

@@ -1,53 +1,56 @@
 # File: app/services/flight_search_service.py
 
 """
-تحويل استجابة Amadeus Flight Offers Search الخام إلى قائمة عروض واضحة
+تحويل استجابة Duffel Offer Requests الخام إلى قائمة عروض واضحة
 (FlightOfferOut)، مع تطبيق رسم حجز الطيران الحالي على كل سعر حقيقي.
+
+ملاحظة مهمة: Duffel يُسعّر كل عرض بعملة قد تختلف حسب شركة الطيران
+والمسار (USD/GBP/EUR...)، بينما كل حسابات المنصة الداخلية بالدولار
+حصراً؛ لذا يُستبعَد أي عرض غير مُسعَّر بالدولار صراحة، تفادياً لمعاملة
+مبلغ بعملة أخرى كأنه دولار.
 """
 
-import re
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from app.integrations import amadeus_client
+from app.integrations import duffel_client
 from app.schemas.flight_booking import FlightOfferOut
 from app.services import flight_booking_service
 
-_DURATION_PATTERN = re.compile(r"PT(?:(\d+)H)?(?:(\d+)M)?")
+_USD_CODE = "USD"
 
 
-def _parse_duration_to_minutes(iso8601_duration: str) -> int:
-    """يحوّل مدة بصيغة ISO 8601 (مثال: 'PT9H30M') إلى عدد دقائق صحيح."""
-    match = _DURATION_PATTERN.match(iso8601_duration)
-    if not match:
-        return 0
-    hours = int(match.group(1) or 0)
-    minutes = int(match.group(2) or 0)
-    return hours * 60 + minutes
+def _duration_minutes_from_segments(segments: list[dict]) -> int:
+    """يحسب مدة الرحلة بالدقائق من فارق وقتي إقلاع أول قطعة ووصول آخر قطعة."""
+    departs_at = datetime.fromisoformat(segments[0]["departing_at"])
+    arrives_at = datetime.fromisoformat(segments[-1]["arriving_at"])
+    return int((arrives_at - departs_at).total_seconds() // 60)
 
 
-def _parse_offer(raw_offer: dict, carrier_names: dict[str, str], fee_setting) -> FlightOfferOut:
-    """يحوّل عرضاً واحداً من استجابة Amadeus الخام إلى FlightOfferOut، مع الرسم مُضافاً."""
-    outbound_itinerary = raw_offer["itineraries"][0]
-    segments = outbound_itinerary["segments"]
-    first_segment = segments[0]
-    last_segment = segments[-1]
+def _parse_offer(raw_offer: dict, fee_setting) -> FlightOfferOut | None:
+    """يحوّل عرضاً واحداً من استجابة Duffel الخام إلى FlightOfferOut، أو None إذا لم يكن مُسعَّراً بالدولار."""
+    if raw_offer["total_currency"] != _USD_CODE:
+        return None
 
-    base_fare_usd = Decimal(raw_offer["price"]["grandTotal"])
+    outbound_segments = raw_offer["slices"][0]["segments"]
+    first_segment = outbound_segments[0]
+    last_segment = outbound_segments[-1]
+    carrier = first_segment["operating_carrier"]
+
+    base_fare_usd = Decimal(raw_offer["total_amount"])
     fee_amount_usd = flight_booking_service.calculate_fee_amount(base_fare_usd, fee_setting)
-    carrier_code = first_segment["carrierCode"]
 
     return FlightOfferOut(
-        airline_code=carrier_code,
-        airline_name=carrier_names.get(carrier_code, carrier_code),
-        origin=first_segment["departure"]["iataCode"],
-        destination=last_segment["arrival"]["iataCode"],
-        departure_at=first_segment["departure"]["at"],
-        arrival_at=last_segment["arrival"]["at"],
-        stops=len(segments) - 1,
-        duration_minutes=_parse_duration_to_minutes(outbound_itinerary["duration"]),
+        airline_code=carrier["iata_code"],
+        airline_name=carrier["name"],
+        origin=first_segment["origin"]["iata_code"],
+        destination=last_segment["destination"]["iata_code"],
+        departure_at=first_segment["departing_at"],
+        arrival_at=last_segment["arriving_at"],
+        stops=len(outbound_segments) - 1,
+        duration_minutes=_duration_minutes_from_segments(outbound_segments),
         base_fare_usd=base_fare_usd,
         fee_amount_usd=fee_amount_usd,
         total_price_usd=base_fare_usd + fee_amount_usd,
@@ -64,7 +67,7 @@ def search_flights(
 ) -> list[FlightOfferOut]:
     """
     يبحث عن رحلات حقيقية بين مدينتين ويُعيدها مع تطبيق رسم حجز الطيران
-    الحالي على سعر كل رحلة.
+    الحالي على سعر كل رحلة (العروض غير المُسعَّرة بالدولار تُستبعَد).
 
     Args:
         db: جلسة قاعدة البيانات (لجلب إعداد الرسوم الحالي).
@@ -75,10 +78,10 @@ def search_flights(
         adults: عدد المسافرين البالغين.
 
     Returns:
-        list[FlightOfferOut]: عروض الرحلات المتاحة، مرتبة كما وردت من المزوّد.
+        list[FlightOfferOut]: عروض الرحلات المتاحة المُسعَّرة بالدولار، كما وردت من المزوّد.
     """
     fee_setting = flight_booking_service.get_current_fee_setting(db)
-    raw_response = amadeus_client.search_flight_offers(origin, destination, departure_date, return_date, adults)
+    raw_response = duffel_client.search_flight_offers(origin, destination, departure_date, return_date, adults)
 
-    carrier_names: dict[str, str] = raw_response.get("dictionaries", {}).get("carriers", {})
-    return [_parse_offer(raw_offer, carrier_names, fee_setting) for raw_offer in raw_response.get("data", [])]
+    parsed_offers = (_parse_offer(raw_offer, fee_setting) for raw_offer in raw_response.get("data", {}).get("offers", []))
+    return [offer for offer in parsed_offers if offer is not None]
