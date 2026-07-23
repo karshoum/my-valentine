@@ -4,9 +4,14 @@ from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse
 
 from app.core.exceptions import AppException
-from app.core.storage import resolve_private_path, verify_signed_url
+from app.core.storage import ALLOWED_UPLOAD_CONTENT_TYPES, resolve_private_path, verify_signed_url
 
 router = APIRouter(prefix="/api/v1/files", tags=["ملفات موقّعة (جوازات / إشعارات دفع)"])
+
+# عكس ALLOWED_UPLOAD_CONTENT_TYPES: نفرض نوع المحتوى من امتداد الملف
+# المخزَّن بدل الاعتماد على تخمين النظام (mimetypes)، لمنع أي التباس قد
+# يجعل المتصفح يعرض الملف كـ HTML قابل للتنفيذ.
+_EXTENSION_TO_CONTENT_TYPE = {extension: content_type for content_type, extension in ALLOWED_UPLOAD_CONTENT_TYPES.items()}
 
 
 @router.get("/{file_path:path}")
@@ -39,4 +44,5 @@ def get_signed_file(file_path: str, expires: int = Query(...), signature: str = 
     if not resolved_path.is_file():
         raise AppException("الملف غير موجود", status_code=404)
 
-    return FileResponse(resolved_path)
+    content_type = _EXTENSION_TO_CONTENT_TYPE.get(resolved_path.suffix.lower(), "application/octet-stream")
+    return FileResponse(resolved_path, media_type=content_type)

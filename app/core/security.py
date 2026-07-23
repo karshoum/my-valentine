@@ -81,8 +81,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         User: صف المستخدم النشط المطابق للتوكن.
 
     Raises:
-        HTTPException: 401 إذا كان التوكن/المستخدم غير صالح، أو 403 إذا
-        كان الحساب موقوفاً.
+        HTTPException: 401 إذا كان التوكن/المستخدم غير صالح أو صادراً
+        قبل آخر تغيير لكلمة المرور، أو 403 إذا كان الحساب موقوفاً.
     """
     payload = decode_access_token(token)
     user_id = payload.get("sub")
@@ -94,4 +94,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="المستخدم غير موجود")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="هذا الحساب موقوف، يرجى التواصل مع الإدارة")
+
+    # توكنات صادرة قبل هذا التغيير لا تحمل "tv"؛ نعتبرها 0 (القيمة
+    # الافتراضية) حفاظاً على توافق الجلسات النشطة وقت النشر.
+    if payload.get("tv", 0) != user.token_version:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="انتهت صلاحية هذه الجلسة، يرجى تسجيل الدخول مرة أخرى",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user

@@ -30,9 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFullName(null);
   }, []);
 
+  const refreshToken = useCallback(
+    (newToken: string) => {
+      if (!role || !fullName) return;
+      saveAuthSession(newToken, role, fullName);
+      setToken(newToken);
+    },
+    [role, fullName],
+  );
+
   const value = useMemo<AuthContextValue>(
-    () => ({ isAuthenticated: Boolean(token), role, fullName, login, logout }),
-    [token, role, fullName, login, logout],
+    () => ({ isAuthenticated: Boolean(token), role, fullName, login, logout, refreshToken }),
+    [token, role, fullName, login, logout, refreshToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

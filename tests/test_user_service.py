@@ -26,3 +26,11 @@ def test_change_password_same_as_current_raises(db_session, customer_user):
     with pytest.raises(AppException) as exc_info:
         user_service.change_password(db_session, customer_user, "Customer@12345", "Customer@12345")
     assert exc_info.value.status_code == 400
+
+
+def test_change_password_increments_token_version(db_session, customer_user):
+    initial_version = customer_user.token_version
+
+    updated = user_service.change_password(db_session, customer_user, "Customer@12345", "NewStrong@678")
+
+    assert updated.token_version == initial_version + 1

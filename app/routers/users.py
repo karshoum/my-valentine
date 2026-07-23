@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.permissions import require_admin
-from app.core.security import get_current_user
+from app.core.security import create_access_token, get_current_user
 from app.models.enums import UserRole
 from app.models.user import User
+from app.schemas.auth import TokenResponse
 from app.schemas.user import PasswordChangeRequest, StaffCreateRequest, UserOut, UserStatusUpdateRequest
 from app.services import user_service
 
@@ -20,14 +21,20 @@ def get_me(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-@router.patch("/me/password", response_model=UserOut)
+@router.patch("/me/password", response_model=TokenResponse)
 def change_my_password(
     payload: PasswordChangeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> User:
-    """يغيّر كلمة مرور المستخدم الحالي بعد التحقق من كلمة المرور القديمة."""
-    return user_service.change_password(db, current_user, payload.current_password, payload.new_password)
+) -> TokenResponse:
+    """
+    يغيّر كلمة مرور المستخدم الحالي، ما يُبطل كل توكن JWT سابق (كل
+    الجلسات في كل الأجهزة)، ثم يُصدر توكناً جديداً فوراً حتى لا تنقطع
+    جلسة المستخدم نفسه الذي نفّذ التغيير.
+    """
+    user = user_service.change_password(db, current_user, payload.current_password, payload.new_password)
+    token = create_access_token({"sub": str(user.id), "role": user.role.value, "tv": user.token_version})
+    return TokenResponse(access_token=token, role=user.role, full_name=user.full_name)
 
 
 @router.post("/staff", response_model=UserOut, status_code=status.HTTP_201_CREATED)

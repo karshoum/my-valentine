@@ -76,7 +76,7 @@ def authenticate(db: Session, payload: LoginRequest) -> TokenResponse:
         raise AppException("هذا الحساب موقوف، يرجى التواصل مع الإدارة", status_code=403)
 
     reset_attempts(payload.identifier)
-    token = create_access_token({"sub": str(user.id), "role": user.role.value})
+    token = create_access_token({"sub": str(user.id), "role": user.role.value, "tv": user.token_version})
     return TokenResponse(
         access_token=token,
         token_type="bearer",

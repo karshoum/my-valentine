@@ -87,3 +87,35 @@ def test_repeated_failed_logins_get_locked_out(client):
         json={"identifier": "lockout-user@baradis.example", "password": "CorrectPass@123"},
     )
     assert locked_response.status_code == 429
+
+
+def test_password_change_invalidates_old_token_and_issues_new_one(client):
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "مستخدم تغيير كلمة المرور",
+            "email": "password-change-user@baradis.example",
+            "phone": "0955555555",
+            "password": "OldPass@123",
+        },
+    )
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"identifier": "password-change-user@baradis.example", "password": "OldPass@123"},
+    )
+    old_token = login_response.json()["access_token"]
+
+    change_response = client.patch(
+        "/api/v1/users/me/password",
+        json={"current_password": "OldPass@123", "new_password": "NewPass@456"},
+        headers={"Authorization": f"Bearer {old_token}"},
+    )
+    assert change_response.status_code == 200
+    new_token = change_response.json()["access_token"]
+    assert new_token != old_token
+
+    old_token_response = client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {old_token}"})
+    assert old_token_response.status_code == 401
+
+    new_token_response = client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {new_token}"})
+    assert new_token_response.status_code == 200

@@ -12,6 +12,8 @@ export interface AuthContextValue {
   fullName: string | null;
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
+  /** يحدّث توكن الجلسة الحالية بدون إعادة تسجيل دخول (بعد تغيير كلمة المرور مثلاً). */
+  refreshToken: (token: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

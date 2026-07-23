@@ -139,7 +139,8 @@ def change_password(db: Session, user: User, current_password: str, new_password
         new_password: كلمة المرور الجديدة المطلوبة.
 
     Returns:
-        User: المستخدم بعد تحديث كلمة مروره.
+        User: المستخدم بعد تحديث كلمة مروره (وزيادة token_version، ما
+        يُبطل فوراً أي توكن JWT صادر قبل هذا التغيير).
 
     Raises:
         AppException: 400 إذا كانت كلمة المرور الحالية خاطئة، أو إذا
@@ -152,6 +153,7 @@ def change_password(db: Session, user: User, current_password: str, new_password
         raise AppException("كلمة المرور الجديدة يجب أن تختلف عن الحالية", status_code=400)
 
     user.password_hash = hash_password(new_password)
+    user.token_version += 1
     audit_service.log_action(
         db,
         user_id=user.id,

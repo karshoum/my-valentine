@@ -39,6 +39,17 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """يضيف ترويسات أمان قياسية لكل استجابة (FastAPI لا يضيفها افتراضياً)."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
     """يحوّل أي AppException إلى استجابة JSON برسالة عربية، ويسجّل التفاصيل التقنية في اللوجز فقط."""

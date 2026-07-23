@@ -19,15 +19,28 @@ from pathlib import Path
 from fastapi import UploadFile
 
 from app.core.config import settings
+from app.core.exceptions import AppException
 
 PRIVATE_ROOT = Path(settings.LOCAL_STORAGE_PATH)
 PRIVATE_ROOT.mkdir(parents=True, exist_ok=True)
 
+# مرفقات مالية/هوية (جوازات، إشعارات بنكك) فقط، لا حاجة لأي صيغة قابلة
+# للتنفيذ أو العرض التفاعلي (html/svg/js/...)، وهذا يمنع أيضاً احتمال
+# XSS مخزَّن لو عُرض الملف لاحقاً في متصفح المُراجِع.
+ALLOWED_UPLOAD_CONTENT_TYPES: dict[str, str] = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "application/pdf": ".pdf",
+}
+MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
+
 
 def save_private_file(upload: UploadFile, subfolder: str) -> str:
     """
-    يحفظ ملفاً مرفوعاً في مسار خاص غير عام تحت اسم عشوائي فريد، لمنع
-    تخمين المسارات أو الوصول المباشر إليها.
+    يحفظ ملفاً مرفوعاً في مسار خاص غير عام تحت اسم عشوائي فريد، بعد
+    التحقق من نوع المحتوى (allowlist) وحجمه، لمنع رفع صيغ قابلة للتنفيذ
+    أو التسبب في استهلاك مساحة تخزين غير محدود.
 
     Args:
         upload: الملف المرفوع من العميل.
@@ -35,16 +48,27 @@ def save_private_file(upload: UploadFile, subfolder: str) -> str:
 
     Returns:
         str: المسار النسبي المخزَّن (subfolder/اسم_عشوائي.امتداد).
+
+    Raises:
+        AppException: 400 إذا كان نوع الملف غير مسموح أو تجاوز حجمه
+        الحد الأقصى (5 ميجابايت).
     """
+    extension = ALLOWED_UPLOAD_CONTENT_TYPES.get(upload.content_type or "")
+    if extension is None:
+        raise AppException("نوع الملف غير مدعوم، الأنواع المسموحة: JPG وPNG وWEBP وPDF فقط", status_code=400)
+
+    content = upload.file.read(MAX_UPLOAD_SIZE_BYTES + 1)
+    if len(content) > MAX_UPLOAD_SIZE_BYTES:
+        raise AppException("حجم الملف يتجاوز الحد الأقصى المسموح (5 ميجابايت)", status_code=400)
+
     folder = PRIVATE_ROOT / subfolder
     folder.mkdir(parents=True, exist_ok=True)
 
-    extension = Path(upload.filename or "").suffix
     stored_name = f"{uuid.uuid4().hex}{extension}"
     destination = folder / stored_name
 
     with destination.open("wb") as buffer:
-        buffer.write(upload.file.read())
+        buffer.write(content)
 
     return f"{subfolder}/{stored_name}"
 
