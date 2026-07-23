@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
 from app.models.enums import OrderStatus, RefundStatus, UserRole
+from app.models.order import OrderStatusLog
 from app.models.refund import Refund
 from app.models.user import User
 from app.schemas.refund import RefundCreateRequest
@@ -27,12 +28,16 @@ def create_refund_request(db: Session, order_id: int, current_user: User, payloa
         Refund: طلب الاسترداد المُنشَأ بحالة pending.
 
     Raises:
-        AppException: 400 إذا كانت حالة الطلب لا تسمح بطلب استرداد.
+        AppException: 400 إذا كانت حالة الطلب لا تسمح بطلب استرداد، أو
+        إذا تجاوز المبلغ المطلوب قيمة الطلب الأصلية.
     """
     order = order_service.get_order_with_access_check(db, order_id, current_user)
 
     if order.status not in (OrderStatus.processing, OrderStatus.in_system, OrderStatus.completed):
         raise AppException("لا يمكن طلب استرداد لهذا الطلب في حالته الحالية", status_code=400)
+
+    if payload.refund_amount > order.total_amount:
+        raise AppException("مبلغ الاسترداد المطلوب أكبر من قيمة الطلب", status_code=400)
 
     refund = Refund(
         order_id=order.id,
@@ -139,7 +144,17 @@ def process_refund(db: Session, refund_id: int, admin_user: User) -> Refund:
         raise AppException("يجب اعتماد طلب الاسترداد أولاً قبل تنفيذه", status_code=400)
 
     order = order_service.get_order_or_404(db, refund.order_id)
+    old_status = order.status
     order.status = OrderStatus.refunded
+    db.add(
+        OrderStatusLog(
+            order_id=order.id,
+            old_status=old_status,
+            new_status=OrderStatus.refunded,
+            changed_by=admin_user.id,
+            notes=f"استرداد طلب رقم {order.order_number}",
+        )
+    )
 
     if order.user_id:
         from app.models.user import User as UserModel
