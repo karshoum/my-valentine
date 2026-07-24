@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { AirportAutocomplete } from "@/components/ui/AirportAutocomplete";
 import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicFlightSearch } from "@/features/public/usePublicFlightSearch";
+import { getAirlineDisplayName } from "@/lib/airlineNames";
 import { glassPanelClass, inputBaseClass } from "@/lib/designTokens";
 
 type TripType = "one_way" | "round_trip";
@@ -21,6 +22,14 @@ function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h}س ${m}د`;
+}
+
+function formatTime(isoDateTime: string): string {
+  return new Date(isoDateTime).toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDate(isoDateTime: string): string {
+  return new Date(isoDateTime).toLocaleDateString("ar", { day: "numeric", month: "short" });
 }
 
 /** نموذج بحث رحلات طيران تفاعلي للصفحة الرئيسية العامة. */
@@ -152,13 +161,18 @@ export function PublicFlightSearch() {
           {offers.map((offer, index) => (
             <div key={index} className={`${glassPanelClass} flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between`}>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                   <Plane size={18} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">{offer.airline_name}</p>
+                  <p className="text-sm font-bold text-slate-900">
+                    {getAirlineDisplayName(offer.airline_code, offer.airline_name)}
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-700">
+                    {offer.origin} {formatTime(offer.departure_at)} — {formatTime(offer.arrival_at)} {offer.destination}
+                  </p>
                   <p className="text-xs text-slate-500">
-                    {offer.origin} → {offer.destination} · {stopsLabel(offer.stops)} · {formatDuration(offer.duration_minutes)}
+                    {formatDate(offer.departure_at)} · {stopsLabel(offer.stops)} · مدة الرحلة {formatDuration(offer.duration_minutes)}
                   </p>
                 </div>
               </div>
