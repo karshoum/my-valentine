@@ -9,7 +9,12 @@ interface ModalProps {
   children: ReactNode;
 }
 
-/** نافذة منبثقة مركزية موحّدة (Modal) للنماذج القصيرة عبر المنصة. */
+/**
+ * نافذة منبثقة مركزية موحّدة (Modal) للنماذج القصيرة عبر المنصة.
+ * محدودة بارتفاع الشاشة دائماً مع تمرير داخلي (overflow-y-auto) للمحتوى
+ * — بدونها كانت النماذج الطويلة (زي "طلب جديد") تمتد خارج الشاشة على
+ * الهاتف بلا أي طريقة للوصول لبقية الحقول.
+ */
 export function Modal({ title, onClose, children }: ModalProps) {
   return (
     <div
@@ -17,10 +22,11 @@ export function Modal({ title, onClose, children }: ModalProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl border border-white/20 bg-white/95 p-6 shadow-xl backdrop-blur-md"
+        className="flex max-h-[85vh] w-full max-w-md flex-col rounded-2xl border border-white/20 bg-white/95
+          shadow-xl backdrop-blur-md"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mb-5 flex items-start justify-between">
+        <div className="flex shrink-0 items-start justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-base font-bold text-slate-900">{title}</h2>
           <button
             type="button"
@@ -30,7 +36,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
             <X size={18} />
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );

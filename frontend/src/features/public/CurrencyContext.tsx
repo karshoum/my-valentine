@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CurrencyContext, detectCurrencyForCountry, type CurrencyContextValue } from "@/features/public/currencyContextValue";
 import { apiClient } from "@/lib/apiClient";
+import { detectVisitorCountryCode } from "@/lib/detectVisitorCountry";
 import type { CurrencyOut } from "@/types/currency";
 
 const STORAGE_KEY = "wakalat_paradise_currency_override";
-const GEOLOCATION_API_URL = "https://ipwho.is/";
 
 /** يوفّر عملة العرض الحالية (مكتشَفة تلقائياً عبر IP أو مختارة يدوياً) لكل شاشات الزوار العامة. */
 export function CurrencyProvider({ children }: { children: ReactNode }) {
@@ -29,12 +29,9 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
     if (currencies.length === 0) return;
 
-    fetch(GEOLOCATION_API_URL)
-      .then((response) => response.json())
-      .then((data: { country_code?: string }) => {
-        setCurrencyCodeState(detectCurrencyForCountry(data.country_code, currencies));
-      })
-      .catch(() => setCurrencyCodeState("USD"));
+    detectVisitorCountryCode().then((countryCode) => {
+      setCurrencyCodeState(detectCurrencyForCountry(countryCode ?? undefined, currencies));
+    });
   }, [currencies]);
 
   const setCurrencyCode = (code: string) => {

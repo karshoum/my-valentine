@@ -26,17 +26,17 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className={`${glassPanelClass} w-full max-w-lg border-navy-100 bg-white/90 p-0`}
+        className={`${glassPanelClass} flex max-h-[85vh] w-full max-w-lg flex-col border-navy-100 bg-white/90 p-0`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
           <h3 className="text-base font-bold text-slate-900">{service.title}</h3>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
             <X size={18} />
           </button>
         </div>
 
-        <div className="space-y-4 px-5 py-4">
+        <div className="space-y-4 overflow-y-auto px-5 py-4">
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700">
               {serviceCategoryLabels[service.category]}
@@ -86,7 +86,7 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
           <button
             type="button"
             onClick={onClose}

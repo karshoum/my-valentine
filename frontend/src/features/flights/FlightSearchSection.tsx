@@ -4,6 +4,7 @@ import { Plane, Search } from "lucide-react";
 import { useState } from "react";
 
 import { useSearchFlights } from "@/features/flights/useSearchFlights";
+import { getAirlineDisplayName } from "@/lib/airlineNames";
 import { inputBaseClass } from "@/lib/designTokens";
 import type { FlightOfferOut } from "@/types/flightBooking";
 
@@ -112,7 +113,7 @@ export function FlightSearchSection({ onOfferSelected }: FlightSearchSectionProp
               <div className="flex items-center gap-2 text-slate-600">
                 <Plane size={15} className="text-sky-600" />
                 <div>
-                  <p className="font-semibold text-slate-800">{offer.airline_name}</p>
+                  <p className="font-semibold text-slate-800">{getAirlineDisplayName(offer.airline_code, offer.airline_name)}</p>
                   <p>
                     {offer.origin} → {offer.destination} · {stopsLabel(offer.stops)} · {formatDuration(offer.duration_minutes)}
                   </p>

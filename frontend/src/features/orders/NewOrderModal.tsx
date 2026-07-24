@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
+import { PhoneNumberInput } from "@/components/ui/PhoneNumberInput";
 import { useCurrencies } from "@/features/currencies/useCurrencies";
 import { FlightSearchSection } from "@/features/flights/FlightSearchSection";
 import { SelectedFlightCard } from "@/features/flights/SelectedFlightCard";
@@ -59,6 +60,13 @@ export function NewOrderModal({
 
   const selectedService = services.find((service) => service.id === serviceId);
   const requiresFlightBooking = Boolean(selectedService && FLIGHT_BOOKING_CATEGORIES.has(selectedService.category));
+
+  const priceUsd = requiresFlightBooking
+    ? (selectedFlightOffer ? Number(selectedFlightOffer.total_price_usd) : null)
+    : (selectedService ? Number(selectedService.effective_price_usd) : null);
+  const selectedCurrency = currencies.find((currency) => currency.code === currencyCode);
+  const convertedTotal =
+    priceUsd !== null && selectedCurrency ? (priceUsd * Number(selectedCurrency.rate_to_usd)).toFixed(2) : null;
 
   const updatePassenger = (index: number, field: keyof OrderPassengerIn, value: string) => {
     setPassengers((current) =>
@@ -162,16 +170,19 @@ export function NewOrderModal({
               </option>
             ))}
           </select>
+          {convertedTotal && (
+            <p className="mt-1.5 rounded-xl border border-navy-100 bg-navy-50/50 px-3 py-2 text-sm">
+              <span className="text-slate-600">الإجمالي: </span>
+              <span className="font-bold text-navy-700">
+                {convertedTotal} {currencyCode}
+              </span>
+            </p>
+          )}
         </div>
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">رقم واتساب للتواصل</label>
-          <input
-            value={contactWhatsapp}
-            onChange={(event) => setContactWhatsapp(event.target.value)}
-            placeholder="09xxxxxxxx"
-            className={`w-full ${inputBaseClass}`}
-          />
+          <PhoneNumberInput value={contactWhatsapp} onChange={setContactWhatsapp} placeholder="5xxxxxxxx" />
           <p className="mt-1 text-xs text-slate-500">يستخدمه الموظف للتواصل معك مباشرة عند وجود مستجدات على طلبك.</p>
         </div>
 
@@ -218,6 +229,10 @@ export function NewOrderModal({
             ))}
           </div>
         </div>
+
+        <p className="rounded-xl border border-gold-200 bg-gold-50/60 p-3 text-xs text-gold-800">
+          بعد إنشاء الطلب، ستنتقل مباشرة لصفحة تفاصيله لرفع إثبات الدفع (إشعار التحويل) والمستندات المطلوبة.
+        </p>
 
         {error && <p className="text-xs text-rose-600">{error}</p>}
 

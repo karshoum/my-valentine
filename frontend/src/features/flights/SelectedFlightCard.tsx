@@ -2,6 +2,7 @@
 
 import { Plane, X } from "lucide-react";
 
+import { getAirlineDisplayName } from "@/lib/airlineNames";
 import type { FlightOfferOut } from "@/types/flightBooking";
 
 interface SelectedFlightCardProps {
@@ -16,7 +17,7 @@ export function SelectedFlightCard({ offer, onChangeFlight }: SelectedFlightCard
       <div className="flex items-center gap-2 text-navy-800">
         <Plane size={15} />
         <div>
-          <p className="font-semibold">{offer.airline_name}</p>
+          <p className="font-semibold">{getAirlineDisplayName(offer.airline_code, offer.airline_name)}</p>
           <p>
             {offer.origin} → {offer.destination} · ${offer.total_price_usd}
           </p>
