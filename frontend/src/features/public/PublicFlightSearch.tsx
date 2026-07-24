@@ -184,6 +184,8 @@ export function PublicFlightSearch() {
                   )}
                 </div>
                 <BookNowLink
+                  category="flight"
+                  flightOffer={offer}
                   className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                     transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                 >

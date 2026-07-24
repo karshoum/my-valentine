@@ -1,7 +1,7 @@
 // File: frontend/src/features/orders/NewOrderModal.tsx
 
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
 import { useCurrencies } from "@/features/currencies/useCurrencies";
@@ -10,19 +10,32 @@ import { SelectedFlightCard } from "@/features/flights/SelectedFlightCard";
 import { useCreateOrder } from "@/features/orders/useCreateOrder";
 import { useServices } from "@/features/services/useServices";
 import { inputBaseClass } from "@/lib/designTokens";
+import type { ServiceCategory } from "@/types/enums";
 import type { FlightOfferOut } from "@/types/flightBooking";
 import type { OrderPassengerIn, OrderOut } from "@/types/order";
 
 interface NewOrderModalProps {
   onClose: () => void;
   onCreated: (order: OrderOut) => void;
+  /** يُملأ تلقائياً عند الوصول من رابط "احجز الآن" العام — يختار أول خدمة من هذا التصنيف إذا لم يُحدَّد initialServiceId. */
+  initialCategory?: ServiceCategory;
+  /** معرّف الخدمة الدقيق (لخدمات الفيزا/الإقامة/إلخ حيث توجد عدة خدمات بنفس التصنيف) — له الأولوية على initialCategory. */
+  initialServiceId?: number;
+  /** الرحلة التي بحث عنها الزائر فعلاً قبل تسجيل الدخول — تُملأ مباشرة بدل تكرار البحث من الصفر. */
+  initialFlightOffer?: FlightOfferOut;
 }
 
 const FLIGHT_BOOKING_CATEGORIES = new Set(["flight", "ship_ticket"]);
 const emptyPassenger: OrderPassengerIn = { full_name: "", passport_number: null };
 
 /** نموذج إنشاء طلب جديد: اختيار خدمة، بحث/اختيار رحلة إن لزم، وإدخال بيانات المسافرين ورقم واتساب للتواصل. */
-export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
+export function NewOrderModal({
+  onClose,
+  onCreated,
+  initialCategory,
+  initialServiceId,
+  initialFlightOffer,
+}: NewOrderModalProps) {
   const { services, isLoading: isLoadingServices } = useServices();
   const { currencies, isLoading: isLoadingCurrencies } = useCurrencies();
   const { createOrder, isSubmitting, error } = useCreateOrder();
@@ -31,7 +44,18 @@ export function NewOrderModal({ onClose, onCreated }: NewOrderModalProps) {
   const [currencyCode, setCurrencyCode] = useState("USD");
   const [passengers, setPassengers] = useState<OrderPassengerIn[]>([{ ...emptyPassenger }]);
   const [contactWhatsapp, setContactWhatsapp] = useState("");
-  const [selectedFlightOffer, setSelectedFlightOffer] = useState<FlightOfferOut | null>(null);
+  const [selectedFlightOffer, setSelectedFlightOffer] = useState<FlightOfferOut | null>(initialFlightOffer ?? null);
+
+  useEffect(() => {
+    if (serviceId !== "" || services.length === 0) return;
+    if (initialServiceId) {
+      if (services.some((service) => service.id === initialServiceId)) setServiceId(initialServiceId);
+      return;
+    }
+    if (!initialCategory) return;
+    const matchingService = services.find((service) => service.category === initialCategory);
+    if (matchingService) setServiceId(matchingService.id);
+  }, [initialCategory, initialServiceId, services, serviceId]);
 
   const selectedService = services.find((service) => service.id === serviceId);
   const requiresFlightBooking = Boolean(selectedService && FLIGHT_BOOKING_CATEGORIES.has(selectedService.category));

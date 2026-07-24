@@ -2,9 +2,11 @@
 
 import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { FilterPill } from "@/components/ui/FilterPill";
 import { inputBaseClass, orderStatusColorMap } from "@/lib/designTokens";
+import type { BookNowNavigationState } from "@/features/public/BookNowLink";
 import { NewOrderModal } from "@/features/orders/NewOrderModal";
 import { OrderDetailPanel } from "@/features/orders/OrderDetailPanel";
 import { OrdersTable } from "@/features/orders/OrdersTable";
@@ -14,10 +16,13 @@ import type { OrderOut } from "@/types/order";
 /** الشاشة التفصيلية لكل الطلبات: إنشاء طلب جديد، بحث، تصفية حسب الحالة، وفتح لوحة تفاصيل لكل طلب. */
 export function OrdersPage() {
   const { orders, isLoading, error, refetch } = useOrders();
+  const location = useLocation();
+  const bookNowState = location.state as BookNowNavigationState | null;
+
   const [searchText, setSearchText] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderOut | null>(null);
-  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(Boolean(bookNowState?.openNewOrder));
 
   const filteredOrders = useMemo(() => {
     return orders
@@ -94,6 +99,9 @@ export function OrdersPage() {
 
       {isNewOrderModalOpen && (
         <NewOrderModal
+          initialCategory={bookNowState?.category}
+          initialServiceId={bookNowState?.serviceId}
+          initialFlightOffer={bookNowState?.flightOffer}
           onClose={() => setIsNewOrderModalOpen(false)}
           onCreated={(order) => {
             setIsNewOrderModalOpen(false);

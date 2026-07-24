@@ -116,6 +116,7 @@ export function PublicShipBooking() {
                     الإجمالي: {quote ? formatUsd(quote.total_price_usd) : "..."}
                   </p>
                   <BookNowLink
+                    category="ship_ticket"
                     className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                       shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                   >
@@ -127,6 +128,7 @@ export function PublicShipBooking() {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gold-700">الأسعار ستُحدَّث قريباً</p>
                 <BookNowLink
+                  category="ship_ticket"
                   className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                     shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                 >

@@ -95,6 +95,8 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
             إغلاق
           </button>
           <BookNowLink
+            category={service.category}
+            serviceId={service.id}
             className="rounded-xl bg-navy-600 px-5 py-2 text-sm font-semibold text-white
               shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
           >
