@@ -1,9 +1,10 @@
 // File: frontend/src/features/public/PublicLandingPage.tsx
 
-import { ChevronLeft, Menu, X } from "lucide-react";
+import { ChevronLeft, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "@/features/auth/useAuth";
 import { CurrencyProvider } from "@/features/public/CurrencyContext";
 import { CurrencySwitcher } from "@/features/public/CurrencySwitcher";
 import { PublicFlightSearch } from "@/features/public/PublicFlightSearch";
@@ -31,6 +32,7 @@ const CATEGORY_LIST: { value: ServiceCategory; label: string; icon: string }[] =
 
 /** الصفحة الرئيسية العامة: قائمة تصنيفات يميناً + محتوى تفاعلي بالوسط. */
 export function PublicLandingPage() {
+  const { isAuthenticated } = useAuth();
   const [activeCategory, setActiveCategory] = useState<ServiceCategory>("flight");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -66,22 +68,36 @@ export function PublicLandingPage() {
               <div className="hidden sm:block">
                 <CurrencySwitcher />
               </div>
-              <Link
-                to="/login"
-                className="rounded-xl px-2.5 py-2 text-sm font-semibold text-navy-700 transition-colors
-                  hover:bg-white/60 sm:px-4"
-              >
-                <span className="sm:hidden">دخول</span>
-                <span className="hidden sm:inline">تسجيل الدخول</span>
-              </Link>
-              <Link
-                to="/register"
-                className="rounded-xl bg-navy-600 px-2.5 py-2 text-sm font-semibold text-white shadow-sm
-                  transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98] sm:px-4"
-              >
-                <span className="sm:hidden">حساب</span>
-                <span className="hidden sm:inline">إنشاء حساب</span>
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-1.5 rounded-xl bg-navy-600 px-2.5 py-2 text-sm font-semibold
+                    text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500
+                    active:scale-[0.98] sm:px-4"
+                >
+                  <LayoutDashboard size={16} />
+                  لوحة التحكم
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="rounded-xl px-2.5 py-2 text-sm font-semibold text-navy-700 transition-colors
+                      hover:bg-white/60 sm:px-4"
+                  >
+                    <span className="sm:hidden">دخول</span>
+                    <span className="hidden sm:inline">تسجيل الدخول</span>
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="rounded-xl bg-navy-600 px-2.5 py-2 text-sm font-semibold text-white shadow-sm
+                      transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98] sm:px-4"
+                  >
+                    <span className="sm:hidden">حساب</span>
+                    <span className="hidden sm:inline">إنشاء حساب</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </header>

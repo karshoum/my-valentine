@@ -2,9 +2,9 @@
 
 import { ArrowLeftRight, Plane, Search } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import { AirportAutocomplete } from "@/components/ui/AirportAutocomplete";
+import { BookNowLink } from "@/features/public/BookNowLink";
 import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicFlightSearch } from "@/features/public/usePublicFlightSearch";
 import { getAirlineDisplayName } from "@/lib/airlineNames";
@@ -183,13 +183,12 @@ export function PublicFlightSearch() {
                     <p className="text-xs text-slate-400">شامل رسوم الحجز</p>
                   )}
                 </div>
-                <Link
-                  to="/register"
+                <BookNowLink
                   className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                     transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                 >
                   احجز الآن
-                </Link>
+                </BookNowLink>
               </div>
             </div>
           ))}

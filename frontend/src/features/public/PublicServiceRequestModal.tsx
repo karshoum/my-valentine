@@ -1,8 +1,9 @@
 // File: frontend/src/features/public/PublicServiceRequestModal.tsx
 
 import { FileText, Upload, X } from "lucide-react";
-import { Link } from "react-router-dom";
 
+import { useAuth } from "@/features/auth/useAuth";
+import { BookNowLink } from "@/features/public/BookNowLink";
 import { useCurrency } from "@/features/public/useCurrency";
 import { glassPanelClass } from "@/lib/designTokens";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
@@ -20,6 +21,7 @@ interface Props {
 export function PublicServiceRequestModal({ service, onClose }: Props) {
   const hasRealPrice = Number(service.effective_price_usd) > 0;
   const { formatUsd } = useCurrency();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
@@ -77,7 +79,9 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
 
           <div className="rounded-xl border border-gold-200 bg-gold-50/60 p-3">
             <p className="text-sm text-gold-800">
-              لإكمال طلبك ورفع المستندات المطلوبة، يرجى إنشاء حساب أو تسجيل الدخول أولاً.
+              {isAuthenticated
+                ? "لإكمال طلبك ورفع المستندات المطلوبة، اذهب لشاشة طلباتك."
+                : "لإكمال طلبك ورفع المستندات المطلوبة، يرجى إنشاء حساب أو تسجيل الدخول أولاً."}
             </p>
           </div>
         </div>
@@ -90,13 +94,12 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
           >
             إغلاق
           </button>
-          <Link
-            to="/register"
+          <BookNowLink
             className="rounded-xl bg-navy-600 px-5 py-2 text-sm font-semibold text-white
               shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
           >
-            سجّل وقدّم طلبك
-          </Link>
+            {isAuthenticated ? "قدّم طلبك الآن" : "سجّل وقدّم طلبك"}
+          </BookNowLink>
         </div>
       </div>
     </div>

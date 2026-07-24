@@ -2,8 +2,8 @@
 
 import { Anchor, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 
+import { BookNowLink } from "@/features/public/BookNowLink";
 import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicShipRoutes } from "@/features/public/usePublicShipRoutes";
 import { useShipRouteQuote } from "@/features/public/useShipRouteQuote";
@@ -115,25 +115,23 @@ export function PublicShipBooking() {
                   <p className="text-lg font-bold text-navy-700">
                     الإجمالي: {quote ? formatUsd(quote.total_price_usd) : "..."}
                   </p>
-                  <Link
-                    to="/register"
+                  <BookNowLink
                     className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                       shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                   >
                     احجز الآن
-                  </Link>
+                  </BookNowLink>
                 </div>
               </>
             ) : (
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gold-700">الأسعار ستُحدَّث قريباً</p>
-                <Link
-                  to="/register"
+                <BookNowLink
                   className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
                     shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
                 >
                   سجّل واحجز
-                </Link>
+                </BookNowLink>
               </div>
             )}
           </div>
