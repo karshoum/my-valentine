@@ -27,6 +27,14 @@ export interface LoginRequest {
   password: string;
 }
 
+/** مطابق لـ app.schemas.auth.RegisterRequest. */
+export interface RegisterRequest {
+  full_name: string;
+  email: string | null;
+  phone: string;
+  password: string;
+}
+
 /** مطابق لـ app.schemas.auth.GoogleLoginRequest. */
 export interface GoogleLoginRequest {
   id_token: string;
