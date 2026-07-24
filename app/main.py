@@ -21,6 +21,7 @@ from app.routers import (
     refunds,
     services,
     ship_routes,
+    social_links,
     users,
 )
 
@@ -82,6 +83,7 @@ app.include_router(refunds.router)
 app.include_router(leads.router)
 app.include_router(audit.router)
 app.include_router(ship_routes.router)
+app.include_router(social_links.router)
 app.include_router(files.router)
 
 

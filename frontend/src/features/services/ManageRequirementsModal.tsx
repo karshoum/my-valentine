@@ -3,6 +3,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
 import { useManageRequirements } from "@/features/services/useManageRequirements";
 import { inputBaseClass } from "@/lib/designTokens";
@@ -23,6 +24,7 @@ export function ManageRequirementsModal({ service, onClose, onChanged }: ManageR
   const { addRequirement, updateRequirement, deleteRequirement, isSubmitting, error } = useManageRequirements();
   const [requirements, setRequirements] = useState<ServiceRequirementOut[]>(service.requirements);
   const [newRequirementText, setNewRequirementText] = useState("");
+  const [requirementToDelete, setRequirementToDelete] = useState<ServiceRequirementOut | null>(null);
 
   const handleAdd = async () => {
     const text = newRequirementText.trim();
@@ -47,12 +49,14 @@ export function ManageRequirementsModal({ service, onClose, onChanged }: ManageR
     if (updated) onChanged(requirements.map((requirement) => (requirement.id === requirementId ? updated : requirement)));
   };
 
-  const handleDelete = async (requirementId: number) => {
-    const succeeded = await deleteRequirement(requirementId);
+  const handleConfirmDelete = async () => {
+    if (!requirementToDelete) return;
+    const succeeded = await deleteRequirement(requirementToDelete.id);
     if (succeeded) {
-      const updatedList = requirements.filter((requirement) => requirement.id !== requirementId);
+      const updatedList = requirements.filter((requirement) => requirement.id !== requirementToDelete.id);
       setRequirements(updatedList);
       onChanged(updatedList);
+      setRequirementToDelete(null);
     }
   };
 
@@ -72,7 +76,7 @@ export function ManageRequirementsModal({ service, onClose, onChanged }: ManageR
               />
               <button
                 type="button"
-                onClick={() => handleDelete(requirement.id)}
+                onClick={() => setRequirementToDelete(requirement)}
                 disabled={isSubmitting}
                 title="حذف"
                 className="mt-1 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
@@ -105,6 +109,17 @@ export function ManageRequirementsModal({ service, onClose, onChanged }: ManageR
 
         {error && <p className="text-xs text-rose-600">{error}</p>}
       </div>
+
+      {requirementToDelete && (
+        <ConfirmDialog
+          title="حذف بند متطلب"
+          message={`هل أنت متأكد من حذف بند "${requirementToDelete.requirement_text}"؟`}
+          confirmLabel="حذف"
+          isConfirming={isSubmitting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setRequirementToDelete(null)}
+        />
+      )}
     </Modal>
   );
 }

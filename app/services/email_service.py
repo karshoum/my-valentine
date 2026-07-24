@@ -17,6 +17,7 @@ from email.mime.text import MIMEText
 from app.core.config import settings
 from app.models.enums import OrderStatus
 from app.models.order import Order
+from app.models.user import User
 from app.services.email_templates import LOGO_CONTENT_ID, load_logo_bytes, render_html_email
 
 logger = logging.getLogger("wakalat_paradise")
@@ -103,4 +104,26 @@ def send_order_status_update_email(order: Order) -> None:
         subject=f"تحديث حالة طلبك {order.order_number} — وكالة برادايس",
         heading=f"مرحباً {order.customer.full_name}",
         paragraphs=[f"تم تحديث حالة طلبك رقم <strong>{order.order_number}</strong> إلى: {status_label}."],
+    )
+
+
+def send_password_reset_email(user: User, expires_at: int, signature: str) -> None:
+    """
+    يرسل رابط استعادة كلمة مرور موقّعاً ومحدود الصلاحية لمستخدم لديه
+    بريد إلكتروني مسجَّل. لا يُرسَل شيء إن لم يُضبَط FRONTEND_BASE_URL
+    بعد على الخادم، لتجنّب بناء رابط لا يعمل.
+    """
+    if not user.email or not settings.FRONTEND_BASE_URL:
+        return
+
+    reset_link = f"{settings.FRONTEND_BASE_URL}/reset-password?uid={user.id}&expires={expires_at}&signature={signature}"
+    _send_branded_email(
+        user.email,
+        subject="استعادة كلمة المرور — وكالة برادايس",
+        heading=f"مرحباً {user.full_name}",
+        paragraphs=[
+            "وصلنا طلب لاستعادة كلمة مرور حسابك. اضغط الرابط أدناه لضبط كلمة مرور جديدة:",
+            f'<a href="{reset_link}" style="color:#22364e;font-weight:bold;">إعادة تعيين كلمة المرور</a>',
+            "هذا الرابط صالح لمدة 30 دقيقة فقط. إذا لم تطلب هذا، تجاهل الرسالة ولن يتغيّر شيء في حسابك.",
+        ],
     )

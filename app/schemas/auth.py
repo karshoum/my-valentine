@@ -34,3 +34,18 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     role: UserRole
     full_name: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    """طلب استعادة كلمة مرور: مُعرّف (بريد أو هاتف) لحساب موجود."""
+
+    identifier: str = Field(description="البريد الإلكتروني أو رقم الهاتف")
+
+
+class ResetPasswordRequest(BaseModel):
+    """ضبط كلمة مرور جديدة عبر رابط استعادة موقّع وصالح."""
+
+    uid: int
+    expires: int
+    signature: str
+    new_password: str = Field(min_length=8, max_length=128)

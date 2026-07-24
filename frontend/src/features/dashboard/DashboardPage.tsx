@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, ListOrdered, Wallet } from "lucide-react";
 import { useMemo } from "react";
 
 import { KpiCard } from "@/components/ui/KpiCard";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { RecentOrdersTable } from "@/features/dashboard/RecentOrdersTable";
 import { useOrders } from "@/features/orders/useOrders";
 
@@ -22,7 +23,7 @@ export function DashboardPage() {
   }, [orders]);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ تحميل البيانات...</p>;
+    return <LoadingIndicator label="جارٍ تحميل البيانات..." />;
   }
 
   if (error) {

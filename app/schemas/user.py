@@ -39,6 +39,24 @@ class UserOut(BaseModel):
     full_name: str
     email: EmailStr | None
     phone: str | None
+    whatsapp_number: str | None
     role: UserRole
     is_active: bool
     created_at: datetime
+
+
+class ProfileUpdateRequest(BaseModel):
+    """
+    تعديل ذاتي لبيانات الحساب من شاشة "حسابي" (لا يشمل الدور أو كلمة
+    المرور). الحقول غير المُرسَلة تبقى دون تغيير.
+    """
+
+    full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    email: EmailStr | None = None
+    whatsapp_number: str | None = Field(default=None, min_length=6, max_length=20)
+
+
+class AccountDeactivationRequest(BaseModel):
+    """طلب إيقاف الحساب الذاتي، يتطلب تأكيد كلمة المرور الحالية لمنع الإيقاف العرَضي."""
+
+    password: str

@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { CreateCurrencyModal } from "@/features/currencies/CreateCurrencyModal";
 import { CurrenciesTable } from "@/features/currencies/CurrenciesTable";
 import { UpdateRateModal } from "@/features/currencies/UpdateRateModal";
@@ -16,7 +17,7 @@ export function CurrenciesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ تحميل العملات...</p>;
+    return <LoadingIndicator label="جارٍ تحميل العملات..." />;
   }
 
   if (error) {

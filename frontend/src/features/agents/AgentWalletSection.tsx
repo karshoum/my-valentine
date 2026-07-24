@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { inputBaseClass } from "@/lib/designTokens";
 import { walletTransactionTypeLabels } from "@/lib/paymentModeLabels";
 import { useAgentWallet } from "@/features/agents/useAgentWallet";
@@ -71,7 +72,7 @@ export function AgentWalletSection({ agent, canDeposit, onWalletChanged }: Agent
       <div>
         <p className="mb-2 text-sm font-medium text-slate-700">سجل الحركات</p>
         {isLoading ? (
-          <p className="text-sm text-slate-400">جارٍ التحميل...</p>
+          <LoadingIndicator />
         ) : logs.length === 0 ? (
           <p className="text-sm text-slate-400">لا توجد حركات بعد</p>
         ) : (

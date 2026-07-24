@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str | None = None
     SMTP_USE_TLS: bool = True
 
+    # عنوان الواجهة الأمامية (Vercel) المستخدَم لبناء روابط داخل
+    # الإيميلات (مثال: رابط استعادة كلمة المرور). يبقى None حتى يُضبَط
+    # صراحةً؛ عندها يُرفَض إرسال رابط الاستعادة بدل بناء رابط مكسور.
+    FRONTEND_BASE_URL: str | None = None
+
     # Private file storage (passports, bankak receipts, ...).
     LOCAL_STORAGE_PATH: str = "storage/private"
     SIGNED_URL_SECRET: str

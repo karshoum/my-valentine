@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { useFlightBookingFeeSetting } from "@/features/flights/useFlightBookingFeeSetting";
 import { inputBaseClass } from "@/lib/designTokens";
 import type { FlightBookingFeeType } from "@/types/enums";
@@ -31,7 +32,7 @@ export function BookingFeeSettingsPage() {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ التحميل...</p>;
+    return <LoadingIndicator />;
   }
 
   return (

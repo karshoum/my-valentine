@@ -8,6 +8,7 @@ export interface UserOut {
   full_name: string;
   email: string | null;
   phone: string | null;
+  whatsapp_number: string | null;
   role: UserRole;
   is_active: boolean;
   created_at: string;
@@ -44,4 +45,38 @@ export interface GoogleLoginRequest {
 export interface PasswordChangeRequest {
   current_password: string;
   new_password: string;
+}
+
+/** مطابق لـ app.schemas.auth.ForgotPasswordRequest. */
+export interface ForgotPasswordRequest {
+  identifier: string;
+}
+
+/** مطابق لـ app.schemas.auth.ResetPasswordRequest. */
+export interface ResetPasswordRequest {
+  uid: number;
+  expires: number;
+  signature: string;
+  new_password: string;
+}
+
+/** مطابق لـ app.schemas.user.ProfileUpdateRequest. */
+export interface ProfileUpdateRequest {
+  full_name?: string;
+  email?: string | null;
+  whatsapp_number?: string | null;
+}
+
+/** مطابق لـ app.schemas.user.AccountDeactivationRequest. */
+export interface AccountDeactivationRequest {
+  password: string;
+}
+
+/** مطابق لـ app.schemas.user.StaffCreateRequest. */
+export interface StaffCreateRequest {
+  full_name: string;
+  email: string | null;
+  phone: string;
+  password: string;
+  role: "admin" | "employee";
 }

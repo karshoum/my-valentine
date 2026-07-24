@@ -3,6 +3,7 @@
 import { Plus, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { inputBaseClass } from "@/lib/designTokens";
 import { useAuth } from "@/features/auth/useAuth";
 import { AgentDetailPanel } from "@/features/agents/AgentDetailPanel";
@@ -40,7 +41,7 @@ export function AgentsPage() {
   }, [agents, selectedAgent]);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ تحميل الوكلاء...</p>;
+    return <LoadingIndicator label="جارٍ تحميل الوكلاء..." />;
   }
 
   if (error) {

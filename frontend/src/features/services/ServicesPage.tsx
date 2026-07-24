@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { CreateServiceModal } from "@/features/services/CreateServiceModal";
 import { DiscountModal } from "@/features/services/DiscountModal";
 import { EditServiceModal } from "@/features/services/EditServiceModal";
@@ -34,7 +35,7 @@ export function ServicesPage() {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ تحميل الخدمات...</p>;
+    return <LoadingIndicator label="جارٍ تحميل الخدمات..." />;
   }
 
   if (error) {

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { FilterPill } from "@/components/ui/FilterPill";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { inputBaseClass, orderStatusColorMap } from "@/lib/designTokens";
 import type { BookNowNavigationState } from "@/features/public/BookNowLink";
 import { NewOrderModal } from "@/features/orders/NewOrderModal";
@@ -38,7 +39,7 @@ export function OrdersPage() {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">جارٍ تحميل الطلبات...</p>;
+    return <LoadingIndicator label="جارٍ تحميل الطلبات..." />;
   }
 
   if (error) {

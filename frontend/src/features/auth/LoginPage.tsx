@@ -80,6 +80,12 @@ export function LoginPage() {
             </p>
           )}
 
+          <div className="text-end">
+            <Link to="/forgot-password" className="text-xs font-medium text-navy-600 hover:underline">
+              هل نسيت كلمة المرور؟
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}

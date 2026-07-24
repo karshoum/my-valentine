@@ -2,21 +2,28 @@
 
 import { ChevronLeft, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { useAuth } from "@/features/auth/useAuth";
+import { ComingSoonSection } from "@/features/public/ComingSoonSection";
 import { CurrencyProvider } from "@/features/public/CurrencyContext";
 import { CurrencySwitcher } from "@/features/public/CurrencySwitcher";
 import { PublicFlightSearch } from "@/features/public/PublicFlightSearch";
 import { PublicServiceCards } from "@/features/public/PublicServiceCards";
 import { PublicShipBooking } from "@/features/public/PublicShipBooking";
+import { PublicSocialLinksBar } from "@/features/public/PublicSocialLinksBar";
 import { usePublicServices } from "@/features/public/usePublicServices";
-import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceCategory } from "@/types/enums";
 
+/** أي تصنيف تفاعلي تُبنى واجهته الخاصة (بحث/حجز) بدل بطاقات خدمة عامة. */
 const INTERACTIVE_CATEGORIES: ServiceCategory[] = ["flight", "ship_ticket"];
 
-const CATEGORY_LIST: { value: ServiceCategory; label: string; icon: string }[] = [
+/** تصنيف زائف إضافي لا يطابق ServiceCategory الخلفي: قسم "قريباً" لخدمات مستقبلية. */
+const COMING_SOON = "coming_soon" as const;
+export type PublicSection = ServiceCategory | typeof COMING_SOON;
+
+const CATEGORY_LIST: { value: PublicSection; label: string; icon: string }[] = [
   { value: "flight", label: "تذاكر طيران", icon: "✈️" },
   { value: "ship_ticket", label: "تذاكر بواخر", icon: "🚢" },
   { value: "visa", label: "تأشيرات", icon: "📋" },
@@ -28,18 +35,39 @@ const CATEGORY_LIST: { value: ServiceCategory; label: string; icon: string }[] =
   { value: "tourism_package", label: "بكجات سياحية", icon: "🌴" },
   { value: "document_extraction", label: "خدمات استخراج", icon: "📄" },
   { value: "attestation", label: "خدمات توثيق", icon: "✅" },
+  { value: COMING_SOON, label: "قريباً", icon: "🚀" },
 ];
 
-/** الصفحة الرئيسية العامة: قائمة تصنيفات يميناً + محتوى تفاعلي بالوسط. */
+const VALID_SECTIONS = new Set(CATEGORY_LIST.map((item) => item.value));
+
+/**
+ * الصفحة الرئيسية العامة: قائمة تصنيفات يميناً + محتوى تفاعلي بالوسط.
+ * كل تصنيف له مسار مستقل (/services/:category) بدل التبديل بحالة داخلية
+ * فقط، حتى يمكن مشاركة رابط مباشر لأي قسم أو الرجوع إليه من سجل المتصفح.
+ */
 export function PublicLandingPage() {
   const { isAuthenticated } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<ServiceCategory>("flight");
+  const { category } = useParams<{ category: string }>();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const isInteractive = INTERACTIVE_CATEGORIES.includes(activeCategory);
-  const { services, isLoading, error } = usePublicServices(isInteractive ? null : activeCategory);
+  if (!category || !VALID_SECTIONS.has(category as PublicSection)) {
+    return <Navigate to="/services/flight" replace />;
+  }
+  const activeCategory = category as PublicSection;
 
-  const filteredServices = isInteractive ? [] : services;
+  const isInteractive = INTERACTIVE_CATEGORIES.includes(activeCategory as ServiceCategory);
+  const isComingSoon = activeCategory === COMING_SOON;
+  const { services, isLoading, error } = usePublicServices(
+    isInteractive || isComingSoon ? null : (activeCategory as ServiceCategory),
+  );
+
+  const filteredServices = isInteractive || isComingSoon ? [] : services;
+
+  const handleSelectSection = (section: PublicSection) => {
+    navigate(`/services/${section}`);
+    setSidebarOpen(false);
+  };
 
   return (
     <CurrencyProvider>
@@ -60,9 +88,9 @@ export function PublicLandingPage() {
               <img
                 src="/logo.png"
                 alt="شعار وكالة برادايس"
-                className="h-9 w-9 shrink-0 rounded-xl object-cover shadow-sm sm:h-10 sm:w-10"
+                className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-sm sm:h-12 sm:w-12"
               />
-              <span className="hidden truncate text-lg font-bold text-slate-900 sm:inline">وكالة برادايس</span>
+              <span className="truncate text-base font-bold text-slate-900 sm:text-lg">وكالة برادايس</span>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <div className="hidden sm:block">
@@ -105,10 +133,7 @@ export function PublicLandingPage() {
         <div className="mx-auto flex max-w-7xl gap-0 md:gap-5 px-4 py-5 sm:px-6">
           {/* Sidebar - Desktop */}
           <aside className="hidden w-56 shrink-0 md:block">
-            <SidebarContent
-              activeCategory={activeCategory}
-              onSelect={(cat) => setActiveCategory(cat)}
-            />
+            <SidebarContent activeCategory={activeCategory} onSelect={handleSelectSection} />
           </aside>
 
           {/* Sidebar - Mobile drawer (يبقى في الشجرة دائماً لتفعيل انتقال الانزلاق، ويُخفى بـ pointer-events عند الإغلاق) */}
@@ -135,13 +160,7 @@ export function PublicLandingPage() {
                   </button>
                 </div>
               </div>
-              <SidebarContent
-                activeCategory={activeCategory}
-                onSelect={(cat) => {
-                  setActiveCategory(cat);
-                  setSidebarOpen(false);
-                }}
-              />
+              <SidebarContent activeCategory={activeCategory} onSelect={handleSelectSection} />
             </aside>
           </div>
 
@@ -150,10 +169,10 @@ export function PublicLandingPage() {
             {/* Category header */}
             <div className="mb-4 flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
-                {serviceCategoryLabels[activeCategory]}
+                {CATEGORY_LIST.find((item) => item.value === activeCategory)?.label}
               </h1>
               <span className="text-2xl">
-                {CATEGORY_LIST.find((c) => c.value === activeCategory)?.icon}
+                {CATEGORY_LIST.find((item) => item.value === activeCategory)?.icon}
               </span>
             </div>
 
@@ -161,10 +180,13 @@ export function PublicLandingPage() {
             {activeCategory === "flight" && <PublicFlightSearch />}
             {activeCategory === "ship_ticket" && <PublicShipBooking />}
 
+            {/* قسم الخدمات المستقبلية */}
+            {isComingSoon && <ComingSoonSection />}
+
             {/* Service cards for other categories */}
-            {!isInteractive && (
+            {!isInteractive && !isComingSoon && (
               <>
-                {isLoading && <p className="py-8 text-center text-sm text-slate-500">جارٍ تحميل الخدمات...</p>}
+                {isLoading && <LoadingIndicator label="جارٍ تحميل الخدمات..." />}
                 {error && (
                   <p className="mx-auto max-w-md rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">
                     {error}
@@ -175,6 +197,8 @@ export function PublicLandingPage() {
             )}
           </main>
         </div>
+
+        <PublicSocialLinksBar />
       </div>
     </CurrencyProvider>
   );
@@ -185,8 +209,8 @@ function SidebarContent({
   activeCategory,
   onSelect,
 }: {
-  activeCategory: ServiceCategory;
-  onSelect: (cat: ServiceCategory) => void;
+  activeCategory: PublicSection;
+  onSelect: (section: PublicSection) => void;
 }) {
   return (
     <nav className="space-y-1">

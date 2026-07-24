@@ -7,7 +7,7 @@ from app.core.exceptions import AppException
 from app.core.security import hash_password, verify_password
 from app.models.enums import UserRole
 from app.models.user import User
-from app.schemas.user import StaffCreateRequest
+from app.schemas.user import ProfileUpdateRequest, StaffCreateRequest
 from app.services import audit_service
 
 
@@ -163,3 +163,65 @@ def change_password(db: Session, user: User, current_password: str, new_password
     db.commit()
     db.refresh(user)
     return user
+
+
+def update_own_profile(db: Session, user: User, payload: ProfileUpdateRequest) -> User:
+    """
+    يحدّث بيانات ملف المستخدم الشخصي (الاسم/البريد/رقم واتساب) ذاتياً،
+    مع التحقق من عدم تكرار البريد الجديد لدى حساب آخر. الحقول غير
+    المُرسَلة في الطلب تبقى دون تغيير.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        user: المستخدم الحالي (صاحب الطلب).
+        payload: الحقول المطلوب تعديلها.
+
+    Returns:
+        User: المستخدم بعد التحديث.
+
+    Raises:
+        AppException: 409 إذا كان البريد الجديد مسجلاً مسبقاً لحساب آخر.
+    """
+    updates = payload.model_dump(exclude_unset=True)
+
+    new_email = updates.get("email")
+    if new_email and new_email != user.email:
+        existing = db.query(User).filter(User.email == new_email, User.id != user.id).first()
+        if existing:
+            raise AppException("هذا البريد الإلكتروني مسجل مسبقاً لحساب آخر", status_code=409)
+
+    for field, value in updates.items():
+        setattr(user, field, value)
+
+    audit_service.log_action(db, user_id=user.id, action="update_own_profile", details={"fields": list(updates)})
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def deactivate_own_account(db: Session, user: User, password: str) -> None:
+    """
+    يوقف حساب المستخدم الحالي ذاتياً بعد التحقق من كلمة المرور، ويُبطل
+    فوراً كل جلساته (زيادة token_version). الحساب لا يُحذَف فعلياً من
+    قاعدة البيانات حفاظاً على سلامة سجل الطلبات والمدفوعات المرتبطة به؛
+    بل يُعطَّل فقط، فيُمنَع بذلك من تسجيل الدخول مجدداً.
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        user: المستخدم الحالي (صاحب الطلب).
+        password: كلمة المرور الحالية للتأكيد.
+
+    Raises:
+        AppException: 400 إذا كانت كلمة المرور غير صحيحة، أو إذا كان
+        الحساب حساب وكيل (agent) - له محفظة مالية يجب إغلاقها عبر الإدارة أولاً.
+    """
+    if not user.password_hash or not verify_password(password, user.password_hash):
+        raise AppException("كلمة المرور غير صحيحة", status_code=400)
+
+    if user.role == UserRole.agent:
+        raise AppException("لا يمكن إيقاف حساب وكيل ذاتياً، يرجى التواصل مع الإدارة", status_code=400)
+
+    user.is_active = False
+    user.token_version += 1
+    audit_service.log_action(db, user_id=user.id, action="deactivate_own_account", details={"user_id": user.id})
+    db.commit()

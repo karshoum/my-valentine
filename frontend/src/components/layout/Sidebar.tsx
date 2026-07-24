@@ -21,9 +21,9 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
   const visibleItems = navItems.filter((item) => role && item.allowedRoles.includes(role));
 
   const brand = (
-    <div className="mb-6 flex items-center gap-2 px-2">
-      <img src="/logo.png" alt="شعار وكالة برادايس" className="h-9 w-9 rounded-xl object-cover" />
-      <span className="text-sm font-bold text-slate-800">وكالة برادايس</span>
+    <div className="mb-6 flex items-center gap-2.5 px-2">
+      <img src="/logo.png" alt="شعار وكالة برادايس" className="h-12 w-12 rounded-xl object-cover shadow-sm" />
+      <span className="text-base font-bold text-slate-800">وكالة برادايس</span>
     </div>
   );
 

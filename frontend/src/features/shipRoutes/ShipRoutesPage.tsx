@@ -3,6 +3,8 @@
 import { Anchor, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { useAuth } from "@/features/auth/useAuth";
 import { ShipBookingFeeSettingPanel } from "@/features/shipRoutes/ShipBookingFeeSettingPanel";
 import { apiClient } from "@/lib/apiClient";
@@ -21,6 +23,8 @@ export function ShipRoutesPage() {
   const [adultPrice, setAdultPrice] = useState("0");
   const [childPrice, setChildPrice] = useState("0");
   const [infantPrice, setInfantPrice] = useState("0");
+  const [routeToDelete, setRouteToDelete] = useState<ShipRouteOut | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchRoutes = () => {
     setIsLoading(true);
@@ -54,9 +58,18 @@ export function ShipRoutesPage() {
       .catch(() => {});
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الخط؟")) return;
-    apiClient.delete(`/api/v1/ship-routes/${id}`).then(() => fetchRoutes());
+  const handleConfirmDelete = async () => {
+    if (!routeToDelete) return;
+    setIsDeleting(true);
+    try {
+      await apiClient.delete(`/api/v1/ship-routes/${routeToDelete.id}`);
+      fetchRoutes();
+      setRouteToDelete(null);
+    } catch {
+      // يبقى التأكيد مفتوحاً ليتمكّن المستخدم من إعادة المحاولة
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -122,7 +135,7 @@ export function ShipRoutesPage() {
       )}
 
       {isLoading ? (
-        <p className="text-center text-sm text-slate-500">جارٍ التحميل...</p>
+        <LoadingIndicator />
       ) : routes.length === 0 ? (
         <p className="text-center text-sm text-slate-500">لا توجد خطوط بواخر بعد</p>
       ) : (
@@ -156,7 +169,7 @@ export function ShipRoutesPage() {
                   </td>
                   {isAdmin && (
                     <td className="sticky end-0 bg-cream-50 px-3 py-2.5 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">
-                      <button type="button" onClick={() => handleDelete(route.id)} className="rounded-lg p-1 text-rose-400 hover:bg-rose-50 hover:text-rose-600">
+                      <button type="button" onClick={() => setRouteToDelete(route)} className="rounded-lg p-1 text-rose-400 hover:bg-rose-50 hover:text-rose-600">
                         <Trash2 size={15} />
                       </button>
                     </td>
@@ -166,6 +179,17 @@ export function ShipRoutesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {routeToDelete && (
+        <ConfirmDialog
+          title="حذف خط باخرة"
+          message={`هل أنت متأكد من حذف خط "${routeToDelete.origin_city} → ${routeToDelete.destination_city}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+          confirmLabel="حذف"
+          isConfirming={isDeleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setRouteToDelete(null)}
+        />
       )}
     </div>
   );

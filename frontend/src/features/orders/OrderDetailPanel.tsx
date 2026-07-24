@@ -1,6 +1,6 @@
 // File: frontend/src/features/orders/OrderDetailPanel.tsx
 
-import { CheckCircle2, Download, X } from "lucide-react";
+import { CheckCircle2, Download, MessageCircle, X } from "lucide-react";
 import { useState } from "react";
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -12,6 +12,7 @@ import { SubmitPaymentForm } from "@/features/payments/SubmitPaymentForm";
 import { RequestRefundForm } from "@/features/refunds/RequestRefundForm";
 import { buildFileUrl } from "@/lib/apiClient";
 import { refundStatusDisplay } from "@/lib/refundStatusLabels";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import type { OrderOut } from "@/types/order";
 
 interface OrderDetailPanelProps {
@@ -74,7 +75,22 @@ export function OrderDetailPanel({ order, onClose, onOrderUpdated }: OrderDetail
               </div>
             )}
             {order.contact_whatsapp && (
-              <p className="text-xs text-slate-500">رقم واتساب للتواصل: {order.contact_whatsapp}</p>
+              <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
+                <span>رقم واتساب للتواصل: {order.contact_whatsapp}</span>
+                {canManageStatus && (
+                  <a
+                    href={buildWhatsAppLink(order.contact_whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="فتح محادثة واتساب مع العميل"
+                    className="flex shrink-0 items-center gap-1 rounded-lg bg-green-50 px-2 py-1 font-semibold
+                      text-green-700 transition-colors hover:bg-green-100"
+                  >
+                    <MessageCircle size={13} />
+                    مراسلة
+                  </a>
+                )}
+              </div>
             )}
           </section>
         )}

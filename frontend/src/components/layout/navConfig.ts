@@ -8,7 +8,9 @@ import {
   LayoutDashboard,
   PlaneTakeoff,
   RotateCcw,
+  Share2,
   Tag,
+  UserCog,
   Users2,
   Wallet,
 } from "lucide-react";
@@ -36,6 +38,12 @@ export const navItems: NavItem[] = [
     path: "/dashboard/orders",
     icon: PlaneTakeoff,
     allowedRoles: ["admin", "employee", "agent", "customer"],
+  },
+  {
+    label: "المستخدمون",
+    path: "/dashboard/users",
+    icon: UserCog,
+    allowedRoles: ["admin"],
   },
   {
     label: "الوكلاء (B2B)",
@@ -77,6 +85,12 @@ export const navItems: NavItem[] = [
     label: "خطوط البواخر",
     path: "/dashboard/ship-routes",
     icon: Anchor,
+    allowedRoles: ["admin"],
+  },
+  {
+    label: "روابط التواصل الاجتماعي",
+    path: "/dashboard/social-links",
+    icon: Share2,
     allowedRoles: ["admin"],
   },
   {

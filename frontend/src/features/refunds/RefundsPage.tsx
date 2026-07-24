@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { FilterPill } from "@/components/ui/FilterPill";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { RefundReviewModal } from "@/features/refunds/RefundReviewModal";
 import { RefundsTable } from "@/features/refunds/RefundsTable";
 import { useRefunds } from "@/features/refunds/useRefunds";
@@ -42,7 +43,7 @@ export function RefundsPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">جارٍ تحميل طلبات الاسترداد...</p>
+        <LoadingIndicator label="جارٍ تحميل طلبات الاسترداد..." />
       ) : error ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>
       ) : (
