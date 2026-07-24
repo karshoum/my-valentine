@@ -7,4 +7,5 @@ alembic upgrade head
 python -m scripts.seed_initial_data
 python -m scripts.seed_agency_services
 python -m scripts.seed_service_requirements
+python -m scripts.seed_ship_routes
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}"

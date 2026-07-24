@@ -64,6 +64,8 @@ def search_flights(
     departure_date: date,
     return_date: date | None,
     adults: int,
+    children: int = 0,
+    infants: int = 0,
 ) -> list[FlightOfferOut]:
     """
     يبحث عن رحلات حقيقية بين مدينتين ويُعيدها مع تطبيق رسم حجز الطيران
@@ -76,12 +78,16 @@ def search_flights(
         departure_date: تاريخ الذهاب.
         return_date: تاريخ العودة (اختياري).
         adults: عدد المسافرين البالغين.
+        children: عدد الأطفال (2-11 سنة).
+        infants: عدد الرضّع (أقل من سنتين).
 
     Returns:
-        list[FlightOfferOut]: عروض الرحلات المتاحة المُسعَّرة بالدولار، كما وردت من المزوّد.
+        list[FlightOfferOut]: عروض الرحلات المتاحة المُسعَّرة بالدولار.
     """
     fee_setting = flight_booking_service.get_current_fee_setting(db)
-    raw_response = duffel_client.search_flight_offers(origin, destination, departure_date, return_date, adults)
+    raw_response = duffel_client.search_flight_offers(
+        origin, destination, departure_date, return_date, adults, children, infants
+    )
 
     parsed_offers = (_parse_offer(raw_offer, fee_setting) for raw_offer in raw_response.get("data", {}).get("offers", []))
     return [offer for offer in parsed_offers if offer is not None]

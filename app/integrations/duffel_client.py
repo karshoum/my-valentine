@@ -26,6 +26,8 @@ def search_flight_offers(
     departure_date: date,
     return_date: date | None,
     adults: int,
+    children: int = 0,
+    infants: int = 0,
 ) -> dict[str, Any]:
     """
     يبحث عن عروض رحلات طيران حقيقية بين مدينتين عبر Duffel Offer
@@ -37,10 +39,11 @@ def search_flight_offers(
         departure_date: تاريخ الذهاب.
         return_date: تاريخ العودة (اختياري، رحلة ذهاب فقط إذا None).
         adults: عدد المسافرين البالغين.
+        children: عدد الأطفال (2-11 سنة).
+        infants: عدد الرضّع (أقل من سنتين).
 
     Returns:
-        dict: استجابة Duffel الخام لكائن Offer Request (يحتوي
-        data.offers لعروض الرحلات المتاحة).
+        dict: استجابة Duffel الخام لكائن Offer Request.
 
     Raises:
         AppException: 503 إذا لم تُضبَط بيانات الاعتماد، أو 502 إذا فشل
@@ -61,6 +64,10 @@ def search_flight_offers(
             }
         )
 
+    passengers: list[dict[str, str]] = [{"type": "adult"} for _ in range(adults)]
+    passengers.extend({"type": "child"} for _ in range(children))
+    passengers.extend({"type": "infant_without_seat"} for _ in range(infants))
+
     try:
         response = requests.post(
             f"{settings.DUFFEL_BASE_URL}{_OFFER_REQUESTS_PATH}",
@@ -68,7 +75,7 @@ def search_flight_offers(
             json={
                 "data": {
                     "slices": slices,
-                    "passengers": [{"type": "adult"} for _ in range(adults)],
+                    "passengers": passengers,
                     "cabin_class": "economy",
                 }
             },

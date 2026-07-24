@@ -11,6 +11,7 @@ import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { BookingFeeSettingsPage } from "@/features/flights/BookingFeeSettingsPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
+import { ShipRoutesPage } from "@/features/shipRoutes/ShipRoutesPage";
 import { PaymentsPage } from "@/features/payments/PaymentsPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
 import { PublicLandingPage } from "@/features/public/PublicLandingPage";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "services", element: <ServicesPage /> },
       { path: "currencies", element: <CurrenciesPage /> },
       { path: "flight-booking-fee", element: <BookingFeeSettingsPage /> },
+      { path: "ship-routes", element: <ShipRoutesPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },

@@ -27,11 +27,14 @@ def search_flights(
     departure_date: date,
     return_date: date | None = None,
     adults: int = 1,
+    children: int = 0,
+    infants: int = 0,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
 ) -> list[FlightOfferOut]:
-    """يبحث عن رحلات طيران حقيقية بين مدينتين (يتطلّب تسجيل دخول لحماية حصة الاستخدام المدفوعة لدى المزوّد)."""
-    return flight_search_service.search_flights(db, origin, destination, departure_date, return_date, adults)
+    """يبحث عن رحلات طيران حقيقية بين مدينتين (عام، متاح للزوار بلا تسجيل دخول)."""
+    return flight_search_service.search_flights(
+        db, origin, destination, departure_date, return_date, adults, children, infants
+    )
 
 
 @router.get("/fee-setting", response_model=FlightBookingFeeSettingOut)

@@ -1,6 +1,7 @@
 // File: frontend/src/components/layout/navConfig.ts
 
 import {
+  Anchor,
   Banknote,
   CircleUser,
   CreditCard,
@@ -70,6 +71,12 @@ export const navItems: NavItem[] = [
     label: "رسوم الحجز",
     path: "/dashboard/flight-booking-fee",
     icon: Banknote,
+    allowedRoles: ["admin"],
+  },
+  {
+    label: "خطوط البواخر",
+    path: "/dashboard/ship-routes",
+    icon: Anchor,
     allowedRoles: ["admin"],
   },
   {

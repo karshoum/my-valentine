@@ -20,6 +20,7 @@ from app.routers import (
     payments,
     refunds,
     services,
+    ship_routes,
     users,
 )
 
@@ -80,6 +81,7 @@ app.include_router(payments.router)
 app.include_router(refunds.router)
 app.include_router(leads.router)
 app.include_router(audit.router)
+app.include_router(ship_routes.router)
 app.include_router(files.router)
 
 
