@@ -16,6 +16,7 @@ flight_booking_details - تفاصيل رحلة الطيران/الباخرة ا�
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "0008_add_flight_booking_tables"
@@ -23,7 +24,7 @@ down_revision = "0007_add_google_login_support"
 branch_labels = None
 depends_on = None
 
-flight_booking_fee_type = sa.Enum(
+flight_booking_fee_type = postgresql.ENUM(
     "flat", "percentage", name="flight_booking_fee_type", create_type=False
 )
 
