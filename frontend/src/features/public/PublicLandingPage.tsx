@@ -44,34 +44,43 @@ export function PublicLandingPage() {
       <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-200/60">
         {/* Header */}
         <header className="border-b border-white/30 bg-white/50 backdrop-blur-md">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-            <div className="flex items-center gap-2">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-navy-700
+                className="flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-semibold text-navy-700
                   transition-colors hover:bg-white/60 md:hidden"
               >
                 <Menu size={18} />
                 خدماتنا
               </button>
-              <img src="/logo.png" alt="شعار وكالة برادايس" className="h-10 w-10 rounded-xl object-cover shadow-sm" />
-              <span className="text-lg font-bold text-slate-900">وكالة برادايس</span>
+              <img
+                src="/logo.png"
+                alt="شعار وكالة برادايس"
+                className="h-9 w-9 shrink-0 rounded-xl object-cover shadow-sm sm:h-10 sm:w-10"
+              />
+              <span className="hidden truncate text-lg font-bold text-slate-900 sm:inline">وكالة برادايس</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CurrencySwitcher />
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <div className="hidden sm:block">
+                <CurrencySwitcher />
+              </div>
               <Link
                 to="/login"
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-navy-700 transition-colors hover:bg-white/60"
+                className="rounded-xl px-2.5 py-2 text-sm font-semibold text-navy-700 transition-colors
+                  hover:bg-white/60 sm:px-4"
               >
-                تسجيل الدخول
+                <span className="sm:hidden">دخول</span>
+                <span className="hidden sm:inline">تسجيل الدخول</span>
               </Link>
               <Link
                 to="/register"
-                className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white shadow-sm
-                  transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98]"
+                className="rounded-xl bg-navy-600 px-2.5 py-2 text-sm font-semibold text-white shadow-sm
+                  transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98] sm:px-4"
               >
-                إنشاء حساب
+                <span className="sm:hidden">حساب</span>
+                <span className="hidden sm:inline">إنشاء حساب</span>
               </Link>
             </div>
           </div>
@@ -103,9 +112,12 @@ export function PublicLandingPage() {
             >
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-900">خدماتنا</span>
-                <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-700">
-                  <X size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <CurrencySwitcher />
+                  <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-700">
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
               <SidebarContent
                 activeCategory={activeCategory}
