@@ -10,6 +10,7 @@ processing.
 """
 
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
@@ -17,10 +18,13 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import AppException
 from app.core.storage import save_private_file
 from app.models.enums import OrderStatus, PaymentMethod, PaymentStatus
+from app.models.order import Order
 from app.models.payment import Payment
 from app.models.user import User
 from app.schemas.payment import PaymentSubmitRequest
-from app.services import audit_service, order_service
+from app.services import audit_service, currency_service, order_service
+
+_AMOUNT_TOLERANCE_USD = Decimal("0.05")
 
 
 def submit_payment(
@@ -106,10 +110,28 @@ def list_payments(db: Session, status_filter: PaymentStatus | None = None) -> li
     return query.order_by(Payment.created_at.asc()).all()
 
 
+def _amounts_match(db: Session, payment: Payment, order: Order) -> bool:
+    """
+    يتحقق أن المبلغ المُدخَل في محاولة الدفع يطابق سعر الطلب الفعلي
+    (بهامش صغير لفروق التقريب)، مع التحويل بين العملتين إن اختلفتا.
+    """
+    payment_currency = payment.currency_code or order.currency_code
+    if payment_currency == order.currency_code:
+        return abs(payment.amount - order.total_amount) <= Decimal("0.01")
+
+    payment_currency_row = currency_service.get_currency_or_404(db, payment_currency)
+    order_currency_row = currency_service.get_currency_or_404(db, order.currency_code)
+    payment_amount_usd = payment.amount / payment_currency_row.rate_to_usd
+    order_amount_usd = order.total_amount / order_currency_row.rate_to_usd
+    return abs(payment_amount_usd - order_amount_usd) <= _AMOUNT_TOLERANCE_USD
+
+
 def verify_payment(db: Session, payment_id: int, approve: bool, notes: str | None, employee: User) -> Payment:
     """
     يراجع موظف/مدير محاولة دفع معلَّقة ويقرّر قبولها أو رفضها. القبول
-    فقط هو ما ينقل الطلب من pending إلى processing.
+    فقط هو ما ينقل الطلب من pending إلى processing، ولا يُسمَح به إطلاقاً
+    إذا كان المبلغ المُدخَل من العميل لا يطابق سعر الطلب الفعلي — يجب على
+    الموظف رفض المحاولة وتوضيح السبب للعميل بدلاً من ذلك.
 
     Args:
         db: جلسة قاعدة البيانات.
@@ -123,12 +145,22 @@ def verify_payment(db: Session, payment_id: int, approve: bool, notes: str | Non
 
     Raises:
         AppException: 404 إذا لم يوجد سجل الدفع، أو 400 إذا كان قد رُوجِع
-        مسبقاً.
+        مسبقاً أو إذا كان المبلغ لا يطابق سعر الطلب رغم محاولة الاعتماد.
     """
     payment = get_payment_or_404(db, payment_id)
 
     if payment.status != PaymentStatus.pending:
         raise AppException("تمت مراجعة هذا الدفع مسبقاً", status_code=400)
+
+    if approve:
+        order = order_service.get_order_or_404(db, payment.order_id)
+        if not _amounts_match(db, payment, order):
+            raise AppException(
+                "لا يمكن اعتماد الدفع: المبلغ المُدخَل لا يطابق سعر الطلب الفعلي "
+                f"({order.total_amount} {order.currency_code}). تحقّق من إشعار "
+                "الدفع جيداً، أو ارفض المحاولة إذا كان المبلغ فعلاً غير مطابق.",
+                status_code=400,
+            )
 
     payment.status = PaymentStatus.verified if approve else PaymentStatus.rejected
     payment.verified_by = employee.id

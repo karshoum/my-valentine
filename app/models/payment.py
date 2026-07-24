@@ -1,5 +1,7 @@
 # File: app/models/payment.py
 
+from decimal import Decimal
+
 from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -43,3 +45,13 @@ class Payment(Base):
     def order_number(self) -> str:
         """يُعيد رقم الطلب المرتبط بهذا الدفع، لعرضه في شاشة مراجعة المدفوعات."""
         return self.order.order_number
+
+    @property
+    def order_total_amount(self) -> Decimal:
+        """يُعيد سعر الطلب الفعلي، ليقارنه الموظف بالمبلغ المُدخَل قبل الاعتماد."""
+        return self.order.total_amount
+
+    @property
+    def order_currency_code(self) -> str:
+        """يُعيد رمز عملة الطلب الفعلية، لعرضها بجانب المبلغ المُدخَل."""
+        return self.order.currency_code

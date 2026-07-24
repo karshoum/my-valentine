@@ -7,6 +7,8 @@ export interface PaymentOut {
   id: number;
   order_id: number;
   order_number: string;
+  order_total_amount: string;
+  order_currency_code: string;
   payment_method: PaymentMethod;
   amount: string;
   currency_code: string | null;

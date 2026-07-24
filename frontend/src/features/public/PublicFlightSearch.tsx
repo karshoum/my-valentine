@@ -4,6 +4,8 @@ import { ArrowLeftRight, Plane, Search } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { AirportAutocomplete } from "@/components/ui/AirportAutocomplete";
+import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicFlightSearch } from "@/features/public/usePublicFlightSearch";
 import { glassPanelClass, inputBaseClass } from "@/lib/designTokens";
 
@@ -24,6 +26,7 @@ function formatDuration(minutes: number): string {
 /** نموذج بحث رحلات طيران تفاعلي للصفحة الرئيسية العامة. */
 export function PublicFlightSearch() {
   const { offers, search, isSearching, error } = usePublicFlightSearch();
+  const { formatUsd } = useCurrency();
   const [tripType, setTripType] = useState<TripType>("one_way");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -83,14 +86,7 @@ export function PublicFlightSearch() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="relative">
-            <label className="mb-1 block text-xs font-semibold text-slate-500">مدينة الإقلاع</label>
-            <input
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-              placeholder="رمز المطار (مثال: KRT)"
-              maxLength={3}
-              className={`w-full uppercase ${inputBaseClass}`}
-            />
+            <AirportAutocomplete label="مدينة الإقلاع" value={origin} onChange={setOrigin} placeholder="اكتب اسم المدينة أو المطار..." />
             <button
               type="button"
               onClick={swapCities}
@@ -102,14 +98,7 @@ export function PublicFlightSearch() {
             </button>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-500">مدينة الوصول</label>
-            <input
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              placeholder="رمز المطار (مثال: IST)"
-              maxLength={3}
-              className={`w-full uppercase ${inputBaseClass}`}
-            />
+            <AirportAutocomplete label="مدينة الوصول" value={destination} onChange={setDestination} placeholder="اكتب اسم المدينة أو المطار..." />
           </div>
 
           <div>
@@ -175,7 +164,7 @@ export function PublicFlightSearch() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-end">
-                  <p className="text-lg font-bold text-navy-700">${offer.total_price_usd}</p>
+                  <p className="text-lg font-bold text-navy-700">{formatUsd(offer.total_price_usd)}</p>
                   {Number(offer.fee_amount_usd) > 0 && (
                     <p className="text-xs text-slate-400">شامل رسوم الحجز</p>
                   )}

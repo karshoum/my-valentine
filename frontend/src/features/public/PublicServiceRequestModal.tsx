@@ -3,6 +3,7 @@
 import { FileText, Upload, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { useCurrency } from "@/features/public/useCurrency";
 import { glassPanelClass } from "@/lib/designTokens";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
@@ -18,6 +19,7 @@ interface Props {
  */
 export function PublicServiceRequestModal({ service, onClose }: Props) {
   const hasRealPrice = Number(service.effective_price_usd) > 0;
+  const { formatUsd } = useCurrency();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
@@ -40,9 +42,11 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
             {hasRealPrice ? (
               <span className="text-sm font-bold text-navy-700">
                 {service.has_active_discount && (
-                  <span className="ms-2 text-xs font-normal text-slate-400 line-through">${service.base_price_usd}</span>
+                  <span className="ms-2 text-xs font-normal text-slate-400 line-through">
+                    {formatUsd(service.base_price_usd)}
+                  </span>
                 )}
-                ${service.effective_price_usd}
+                {formatUsd(service.effective_price_usd)}
               </span>
             ) : (
               <span className="text-sm text-slate-400">السعر قريباً</span>

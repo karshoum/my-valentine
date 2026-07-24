@@ -2,10 +2,11 @@
 
 """اختبارات تحويل استجابة Duffel الخام إلى عروض رحلات واضحة، مع تطبيق رسم الحجز واستبعاد العروض غير المُسعَّرة بالدولار."""
 
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 from app.models.enums import FlightBookingFeeType
+from app.models.service import Service
 from app.schemas.flight_booking import FlightBookingFeeUpdateRequest
 from app.services import flight_booking_service, flight_search_service
 
@@ -120,6 +121,36 @@ def test_non_usd_offers_are_excluded(db_session, monkeypatch):
     offers = flight_search_service.search_flights(db_session, "DMM", "IST", date(2026, 8, 1), None, 1)
 
     assert all(offer.airline_code != "BA" for offer in offers)
+
+
+def test_active_ticket_discount_reduces_fee_only_not_real_fare(db_session, admin_user, monkeypatch):
+    flight_booking_service.update_fee_setting(
+        db_session,
+        FlightBookingFeeUpdateRequest(fee_type=FlightBookingFeeType.flat, fee_value=Decimal("20")),
+        admin_user,
+    )
+    ticket_service = Service(
+        category="flight",
+        title="تذاكر طيران",
+        base_price_usd=Decimal("0"),
+        is_active=True,
+        discount_percentage=Decimal("50"),
+        discount_valid_until=datetime.now(timezone.utc) + timedelta(days=1),
+    )
+    db_session.add(ticket_service)
+    db_session.commit()
+    monkeypatch.setattr(
+        flight_search_service.duffel_client,
+        "search_flight_offers",
+        lambda *args, **kwargs: _FAKE_DUFFEL_RESPONSE,
+    )
+
+    offers = flight_search_service.search_flights(db_session, "DMM", "IST", date(2026, 8, 1), None, 1)
+
+    direct_offer = offers[0]
+    assert direct_offer.base_fare_usd == Decimal("340.00")  # السعر الحقيقي لم يتغيّر
+    assert direct_offer.fee_amount_usd == Decimal("10.00")  # نصف الرسم (20 - 50%)
+    assert direct_offer.total_price_usd == Decimal("350.00")
 
 
 def test_search_flights_returns_empty_list_when_no_offers(db_session, monkeypatch):

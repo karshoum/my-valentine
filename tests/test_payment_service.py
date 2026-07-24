@@ -69,6 +69,35 @@ def test_verify_payment_approve_moves_order_to_processing(
     assert order.status == OrderStatus.processing
 
 
+def test_verify_payment_rejects_approval_when_amount_mismatches_order_total(
+    db_session, usd_currency, sample_service, customer_user, employee_user
+):
+    order = _make_order(db_session, customer_user.id, sample_service.id)
+    payload = PaymentSubmitRequest(payment_method=PaymentMethod.bankak, amount=Decimal("250"))
+    payment = payment_service.submit_payment(db_session, order.id, customer_user, payload, _fake_receipt())
+
+    with pytest.raises(AppException) as exc_info:
+        payment_service.verify_payment(db_session, payment.id, True, None, employee_user)
+    assert exc_info.value.status_code == 400
+
+    db_session.refresh(order)
+    db_session.refresh(payment)
+    assert order.status == OrderStatus.pending
+    assert payment.status == PaymentStatus.pending
+
+
+def test_verify_payment_allows_rejection_despite_amount_mismatch(
+    db_session, usd_currency, sample_service, customer_user, employee_user
+):
+    order = _make_order(db_session, customer_user.id, sample_service.id)
+    payload = PaymentSubmitRequest(payment_method=PaymentMethod.bankak, amount=Decimal("250"))
+    payment = payment_service.submit_payment(db_session, order.id, customer_user, payload, _fake_receipt())
+
+    payment_service.verify_payment(db_session, payment.id, False, "المبلغ غير مطابق", employee_user)
+
+    assert payment.status == PaymentStatus.rejected
+
+
 def test_list_payments_filters_by_status(db_session, usd_currency, sample_service, customer_user, employee_user):
     order_one = _make_order(db_session, customer_user.id, sample_service.id)
     order_two = _make_order(db_session, customer_user.id, sample_service.id)

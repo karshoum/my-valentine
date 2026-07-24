@@ -48,7 +48,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
               <th className="px-3 py-2 font-medium">التصنيف</th>
               <th className="px-3 py-2 font-medium">السعر</th>
               <th className="px-3 py-2 font-medium">الحالة</th>
-              <th className="px-3 py-2 font-medium"></th>
+              <th className="sticky end-0 bg-white px-3 py-2 font-medium shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]"></th>
             </tr>
           </thead>
           <tbody>
@@ -80,7 +80,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                     {service.is_active ? "مفعَّلة" : "معطَّلة"}
                   </span>
                 </td>
-                <td className="px-3 py-3">
+                <td className="sticky end-0 bg-white px-3 py-3 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">
                   <div className="flex items-center gap-1">
                     <button
                       type="button"

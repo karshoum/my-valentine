@@ -1,5 +1,7 @@
 # File: app/services/service_service.py
 
+from decimal import Decimal
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
@@ -166,3 +168,22 @@ def set_service_discount(db: Session, service_id: int, payload: ServiceDiscountU
     db.commit()
     db.refresh(service)
     return service
+
+
+def get_ticket_discount_percentage(db: Session, category: ServiceCategory) -> Decimal | None:
+    """
+    يُعيد نسبة الخصم الساري على خدمة "تذاكر طيران"/"تذاكر بواخر" (حسب
+    التصنيف)، أو None إن لم يوجد عرض ساري. يُستخدَم لتطبيق الخصم على رسم
+    الحجز فقط دون المساس بالسعر الحقيقي (سعر Duffel أو سعر خط الباخرة).
+
+    Args:
+        db: جلسة قاعدة البيانات.
+        category: تصنيف الخدمة (flight أو ship_ticket).
+
+    Returns:
+        Decimal | None: نسبة الخصم الحالية إن كانت سارية، وإلا None.
+    """
+    service = db.query(Service).filter(Service.category == category).first()
+    if service and service.has_active_discount:
+        return service.discount_percentage
+    return None

@@ -4,10 +4,12 @@ import { Anchor, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicShipRoutes } from "@/features/public/usePublicShipRoutes";
+import { useShipRouteQuote } from "@/features/public/useShipRouteQuote";
 import { glassPanelClass, inputBaseClass } from "@/lib/designTokens";
 
-/** قسم حجز تذاكر البواخر: خطوط مُعدّة من المدير + حساب السعر حسب عدد المسافرين. */
+/** قسم حجز تذاكر البواخر: خطوط مُعدّة من المدير + سعر مُحتسَب من الخادم (السعر الحقيقي + رسم الحجز بعد أي خصم). */
 export function PublicShipBooking() {
   const { routes, isLoading, error } = usePublicShipRoutes();
   const [selectedRouteId, setSelectedRouteId] = useState<number | null>(null);
@@ -19,14 +21,8 @@ export function PublicShipBooking() {
     () => routes.find((r) => r.id === selectedRouteId) ?? null,
     [routes, selectedRouteId],
   );
-
-  const totalPrice = useMemo(() => {
-    if (!selectedRoute) return null;
-    const a = Number(selectedRoute.adult_price_usd) * adults;
-    const c = Number(selectedRoute.child_price_usd) * children;
-    const i = Number(selectedRoute.infant_price_usd) * infants;
-    return (a + c + i).toFixed(2);
-  }, [selectedRoute, adults, children, infants]);
+  const { quote } = useShipRouteQuote(selectedRouteId, adults, children, infants);
+  const { formatUsd } = useCurrency();
 
   const hasPricing = selectedRoute && Number(selectedRoute.adult_price_usd) > 0;
 
@@ -93,16 +89,32 @@ export function PublicShipBooking() {
             {hasPricing ? (
               <>
                 <div className="mb-3 space-y-1 text-sm text-slate-600">
-                  <p>سعر البالغ: <span className="font-semibold text-slate-900">${selectedRoute.adult_price_usd}</span></p>
+                  <p>سعر البالغ: <span className="font-semibold text-slate-900">{formatUsd(selectedRoute.adult_price_usd)}</span></p>
                   {Number(selectedRoute.child_price_usd) > 0 && (
-                    <p>سعر الطفل: <span className="font-semibold text-slate-900">${selectedRoute.child_price_usd}</span></p>
+                    <p>سعر الطفل: <span className="font-semibold text-slate-900">{formatUsd(selectedRoute.child_price_usd)}</span></p>
                   )}
                   {Number(selectedRoute.infant_price_usd) > 0 && (
-                    <p>سعر الرضيع: <span className="font-semibold text-slate-900">${selectedRoute.infant_price_usd}</span></p>
+                    <p>سعر الرضيع: <span className="font-semibold text-slate-900">{formatUsd(selectedRoute.infant_price_usd)}</span></p>
                   )}
                 </div>
+                {quote && Number(quote.fee_amount_usd) > 0 && (
+                  <div className="mb-2 text-xs text-slate-500">
+                    <span>رسم الحجز: </span>
+                    {quote.discount_percentage ? (
+                      <>
+                        <span className="line-through">{formatUsd(quote.fee_amount_usd)}</span>{" "}
+                        <span className="font-semibold text-navy-700">{formatUsd(quote.fee_after_discount_usd)}</span>{" "}
+                        <span className="text-gold-700">(خصم {quote.discount_percentage}%)</span>
+                      </>
+                    ) : (
+                      <span className="font-semibold text-slate-700">{formatUsd(quote.fee_amount_usd)}</span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
-                  <p className="text-lg font-bold text-navy-700">الإجمالي: ${totalPrice}</p>
+                  <p className="text-lg font-bold text-navy-700">
+                    الإجمالي: {quote ? formatUsd(quote.total_price_usd) : "..."}
+                  </p>
                   <Link
                     to="/register"
                     className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white

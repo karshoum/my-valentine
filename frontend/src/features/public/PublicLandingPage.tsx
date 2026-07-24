@@ -4,6 +4,8 @@ import { ChevronLeft, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { CurrencyProvider } from "@/features/public/CurrencyContext";
+import { CurrencySwitcher } from "@/features/public/CurrencySwitcher";
 import { PublicFlightSearch } from "@/features/public/PublicFlightSearch";
 import { PublicServiceCards } from "@/features/public/PublicServiceCards";
 import { PublicShipBooking } from "@/features/public/PublicShipBooking";
@@ -38,55 +40,69 @@ export function PublicLandingPage() {
   const filteredServices = isInteractive ? [] : services;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-200/60">
-      {/* Header */}
-      <header className="border-b border-white/30 bg-white/50 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-lg p-2 text-slate-600 hover:bg-white/60 md:hidden"
-            >
-              <Menu size={20} />
-            </button>
-            <img src="/logo.png" alt="شعار وكالة برادايس" className="h-10 w-10 rounded-xl object-cover shadow-sm" />
-            <span className="text-lg font-bold text-slate-900">وكالة برادايس</span>
+    <CurrencyProvider>
+      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-200/60">
+        {/* Header */}
+        <header className="border-b border-white/30 bg-white/50 backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-navy-700
+                  transition-colors hover:bg-white/60 md:hidden"
+              >
+                <Menu size={18} />
+                خدماتنا
+              </button>
+              <img src="/logo.png" alt="شعار وكالة برادايس" className="h-10 w-10 rounded-xl object-cover shadow-sm" />
+              <span className="text-lg font-bold text-slate-900">وكالة برادايس</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CurrencySwitcher />
+              <Link
+                to="/login"
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-navy-700 transition-colors hover:bg-white/60"
+              >
+                تسجيل الدخول
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white shadow-sm
+                  transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98]"
+              >
+                إنشاء حساب
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-navy-700 transition-colors hover:bg-white/60"
-            >
-              تسجيل الدخول
-            </Link>
-            <Link
-              to="/register"
-              className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white shadow-sm
-                transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500 active:scale-[0.98]"
-            >
-              إنشاء حساب
-            </Link>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="mx-auto flex max-w-7xl gap-0 md:gap-5 px-4 py-5 sm:px-6">
-        {/* Sidebar - Desktop */}
-        <aside className="hidden w-56 shrink-0 md:block">
-          <SidebarContent
-            activeCategory={activeCategory}
-            onSelect={(cat) => setActiveCategory(cat)}
-          />
-        </aside>
+        <div className="mx-auto flex max-w-7xl gap-0 md:gap-5 px-4 py-5 sm:px-6">
+          {/* Sidebar - Desktop */}
+          <aside className="hidden w-56 shrink-0 md:block">
+            <SidebarContent
+              activeCategory={activeCategory}
+              onSelect={(cat) => setActiveCategory(cat)}
+            />
+          </aside>
 
-        {/* Sidebar - Mobile drawer */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-            <aside className="absolute inset-y-0 end-0 w-64 overflow-y-auto bg-white p-4 shadow-xl">
+          {/* Sidebar - Mobile drawer (يبقى في الشجرة دائماً لتفعيل انتقال الانزلاق، ويُخفى بـ pointer-events عند الإغلاق) */}
+          <div
+            className={`fixed inset-0 z-50 md:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
+            aria-hidden={!sidebarOpen}
+          >
+            <div
+              className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+                sidebarOpen ? "opacity-100" : "opacity-0"
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            />
+            <aside
+              className={`absolute inset-y-0 start-0 w-72 max-w-[85vw] overflow-y-auto bg-white p-4 shadow-xl
+                transition-transform duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "translate-x-full"}`}
+            >
               <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900">التصنيفات</span>
+                <span className="text-sm font-bold text-slate-900">خدماتنا</span>
                 <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-700">
                   <X size={18} />
                 </button>
@@ -100,39 +116,39 @@ export function PublicLandingPage() {
               />
             </aside>
           </div>
-        )}
 
-        {/* Main content */}
-        <main className="min-w-0 flex-1">
-          {/* Category header */}
-          <div className="mb-4 flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
-              {serviceCategoryLabels[activeCategory]}
-            </h1>
-            <span className="text-2xl">
-              {CATEGORY_LIST.find((c) => c.value === activeCategory)?.icon}
-            </span>
-          </div>
+          {/* Main content */}
+          <main className="min-w-0 flex-1">
+            {/* Category header */}
+            <div className="mb-4 flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
+                {serviceCategoryLabels[activeCategory]}
+              </h1>
+              <span className="text-2xl">
+                {CATEGORY_LIST.find((c) => c.value === activeCategory)?.icon}
+              </span>
+            </div>
 
-          {/* Interactive panels for flight/ship */}
-          {activeCategory === "flight" && <PublicFlightSearch />}
-          {activeCategory === "ship_ticket" && <PublicShipBooking />}
+            {/* Interactive panels for flight/ship */}
+            {activeCategory === "flight" && <PublicFlightSearch />}
+            {activeCategory === "ship_ticket" && <PublicShipBooking />}
 
-          {/* Service cards for other categories */}
-          {!isInteractive && (
-            <>
-              {isLoading && <p className="py-8 text-center text-sm text-slate-500">جارٍ تحميل الخدمات...</p>}
-              {error && (
-                <p className="mx-auto max-w-md rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">
-                  {error}
-                </p>
-              )}
-              {!isLoading && !error && <PublicServiceCards services={filteredServices} />}
-            </>
-          )}
-        </main>
+            {/* Service cards for other categories */}
+            {!isInteractive && (
+              <>
+                {isLoading && <p className="py-8 text-center text-sm text-slate-500">جارٍ تحميل الخدمات...</p>}
+                {error && (
+                  <p className="mx-auto max-w-md rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">
+                    {error}
+                  </p>
+                )}
+                {!isLoading && !error && <PublicServiceCards services={filteredServices} />}
+              </>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </CurrencyProvider>
   );
 }
 

@@ -3,6 +3,7 @@
 import { FileText } from "lucide-react";
 import { useState } from "react";
 
+import { useCurrency } from "@/features/public/useCurrency";
 import { glassPanelClass, cardHoverClass } from "@/lib/designTokens";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
@@ -16,6 +17,7 @@ interface PublicServiceCardsProps {
 /** شبكة بطاقات الخدمات العامة: سعر، متطلبات، وزر "قدّم طلبك". */
 export function PublicServiceCards({ services }: PublicServiceCardsProps) {
   const [selectedService, setSelectedService] = useState<ServiceOut | null>(null);
+  const { formatUsd } = useCurrency();
 
   if (services.length === 0) {
     return <p className="py-8 text-center text-sm text-slate-500">لا توجد خدمات في هذا التصنيف حالياً</p>;
@@ -59,10 +61,10 @@ export function PublicServiceCards({ services }: PublicServiceCardsProps) {
                   <p className="text-sm font-semibold text-navy-700">
                     {service.has_active_discount && (
                       <span className="ms-2 text-xs font-normal text-slate-400 line-through">
-                        ${service.base_price_usd}
+                        {formatUsd(service.base_price_usd)}
                       </span>
                     )}
-                    ${service.effective_price_usd}
+                    {formatUsd(service.effective_price_usd)}
                   </p>
                 ) : (
                   <p className="text-sm text-slate-400">السعر قريباً</p>

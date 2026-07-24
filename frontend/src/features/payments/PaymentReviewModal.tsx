@@ -15,10 +15,16 @@ interface PaymentReviewModalProps {
   onReviewed: () => void;
 }
 
+const AMOUNT_TOLERANCE_USD = 0.05;
+
 /** نافذة مراجعة يدوية لمحاولة دفع معلَّقة: عرض الإيصال (إن وُجد) وقرار اعتماد/رفض. */
 export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentReviewModalProps) {
   const { verifyPayment, isSubmitting, error } = useVerifyPayment();
   const [notes, setNotes] = useState("");
+
+  const sameCurrency = (payment.currency_code || payment.order_currency_code) === payment.order_currency_code;
+  const amountsMatch =
+    !sameCurrency || Math.abs(Number(payment.amount) - Number(payment.order_total_amount)) <= AMOUNT_TOLERANCE_USD;
 
   const handleDecision = async (approve: boolean) => {
     const result = await verifyPayment(payment.id, approve, notes.trim() || null);
@@ -33,7 +39,11 @@ export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentRevi
             <span className="font-medium text-slate-800">الطريقة:</span> {paymentMethodLabels[payment.payment_method]}
           </p>
           <p className="mt-1">
-            <span className="font-medium text-slate-800">المبلغ:</span> {payment.amount} {payment.currency_code}
+            <span className="font-medium text-slate-800">المبلغ المُدخَل:</span> {payment.amount} {payment.currency_code}
+          </p>
+          <p className="mt-1">
+            <span className="font-medium text-slate-800">سعر الطلب الفعلي:</span> {payment.order_total_amount}{" "}
+            {payment.order_currency_code}
           </p>
           {payment.transaction_ref && (
             <p className="mt-1">
@@ -41,6 +51,13 @@ export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentRevi
             </p>
           )}
         </div>
+
+        {!amountsMatch && (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+            تحذير: المبلغ المُدخَل لا يطابق سعر الطلب الفعلي — لا يمكن اعتماد هذا الدفع. تحقّق من إشعار الدفع جيداً، أو ارفض
+            المحاولة.
+          </p>
+        )}
 
         {payment.receipt_signed_url ? (
           <a href={buildFileUrl(payment.receipt_signed_url)} target="_blank" rel="noreferrer">
@@ -84,7 +101,8 @@ export function PaymentReviewModal({ payment, onClose, onReviewed }: PaymentRevi
           <button
             type="button"
             onClick={() => handleDecision(true)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !amountsMatch}
+            title={!amountsMatch ? "المبلغ لا يطابق سعر الطلب" : undefined}
             className="flex-1 rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
               duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
               disabled:opacity-60"

@@ -32,6 +32,8 @@ class PaymentOut(BaseModel):
     id: int
     order_id: int
     order_number: str
+    order_total_amount: Decimal
+    order_currency_code: str
     payment_method: PaymentMethod
     amount: Decimal
     currency_code: str | None

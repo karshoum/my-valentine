@@ -4,6 +4,7 @@ import { Anchor, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/features/auth/useAuth";
+import { ShipBookingFeeSettingPanel } from "@/features/shipRoutes/ShipBookingFeeSettingPanel";
 import { apiClient } from "@/lib/apiClient";
 import { glassPanelClass, inputBaseClass } from "@/lib/designTokens";
 import type { ShipRouteOut } from "@/types/shipRoute";
@@ -78,6 +79,8 @@ export function ShipRoutesPage() {
         )}
       </div>
 
+      {isAdmin && <ShipBookingFeeSettingPanel />}
+
       {showForm && isAdmin && (
         <div className={`${glassPanelClass} mb-5 space-y-3 p-4`}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -132,7 +135,9 @@ export function ShipRoutesPage() {
                 <th className="px-3 py-2 text-start">طفل</th>
                 <th className="px-3 py-2 text-start">رضيع</th>
                 <th className="px-3 py-2 text-start">الحالة</th>
-                {isAdmin && <th className="px-3 py-2" />}
+                {isAdmin && (
+                  <th className="sticky end-0 bg-cream-50 px-3 py-2 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]" />
+                )}
               </tr>
             </thead>
             <tbody>
@@ -150,7 +155,7 @@ export function ShipRoutesPage() {
                     </span>
                   </td>
                   {isAdmin && (
-                    <td className="px-3 py-2.5">
+                    <td className="sticky end-0 bg-cream-50 px-3 py-2.5 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">
                       <button type="button" onClick={() => handleDelete(route.id)} className="rounded-lg p-1 text-rose-400 hover:bg-rose-50 hover:text-rose-600">
                         <Trash2 size={15} />
                       </button>
