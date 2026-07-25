@@ -4,6 +4,7 @@ import { ChevronLeft, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { CategoryBackdrop } from "@/components/ui/CategoryBackdrop";
 import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { useAuth } from "@/features/auth/useAuth";
 import { ComingSoonSection } from "@/features/public/ComingSoonSection";
@@ -15,6 +16,7 @@ import { PublicShipBooking } from "@/features/public/PublicShipBooking";
 import { PublicSocialLinksBar } from "@/features/public/PublicSocialLinksBar";
 import { usePublicServices } from "@/features/public/usePublicServices";
 import { ReviewsSection } from "@/features/reviews/ReviewsSection";
+import { comingSoonIcon, JOURNEY_CATEGORIES, serviceCategoryIcons } from "@/lib/serviceCategoryIcons";
 import type { ServiceCategory } from "@/types/enums";
 
 /** أي تصنيف تفاعلي تُبنى واجهته الخاصة (بحث/حجز) بدل بطاقات خدمة عامة. */
@@ -168,7 +170,12 @@ export function PublicLandingPage() {
           </div>
 
           {/* Main content */}
-          <main className="min-w-0 flex-1">
+          <main className="relative min-w-0 flex-1">
+            <CategoryBackdrop
+              icon={isComingSoon ? comingSoonIcon : serviceCategoryIcons[activeCategory as ServiceCategory]}
+              showRoute={JOURNEY_CATEGORIES.includes(activeCategory as ServiceCategory)}
+            />
+
             {/* Category header */}
             <div className="mb-4 flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">

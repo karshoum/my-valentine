@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useCurrency } from "@/features/public/useCurrency";
 import { glassPanelClass, cardHoverClass } from "@/lib/designTokens";
+import { serviceCategoryIcons } from "@/lib/serviceCategoryIcons";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
 
@@ -28,11 +29,17 @@ export function PublicServiceCards({ services }: PublicServiceCardsProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {services.map((service) => {
           const hasRealPrice = Number(service.effective_price_usd) > 0;
+          const CategoryIcon = serviceCategoryIcons[service.category];
           return (
             <div key={service.id} className={`${glassPanelClass} ${cardHoverClass} flex flex-col p-5`}>
-              <span className="mb-2 inline-block w-fit rounded-full bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700">
-                {serviceCategoryLabels[service.category]}
-              </span>
+              <div className="mb-2 flex items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
+                  <CategoryIcon size={15} />
+                </span>
+                <span className="w-fit rounded-full bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700">
+                  {serviceCategoryLabels[service.category]}
+                </span>
+              </div>
               <h3 className="mb-1 text-base font-bold text-slate-900">{service.title}</h3>
               {service.description && <p className="mb-3 text-sm text-slate-600">{service.description}</p>}
 

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { FilterPill } from "@/components/ui/FilterPill";
 import { useAuth } from "@/features/auth/useAuth";
+import { serviceCategoryIcons } from "@/lib/serviceCategoryIcons";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
 
@@ -16,10 +17,24 @@ interface ServicesTableProps {
   onDelete: (service: ServiceOut) => void;
 }
 
+/** شارة حالة التفعيل، مشتركة بين عرضَي الجدول والبطاقات. */
+function StatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
+        isActive ? "border-navy-200 bg-navy-50 text-navy-700" : "border-slate-200 bg-slate-100 text-slate-500"
+      }`}
+    >
+      {isActive ? "مفعَّلة" : "معطَّلة"}
+    </span>
+  );
+}
+
 /**
- * جدول تفاعلي لكتالوج الخدمات، مع فلترة حسب التصنيف وأزرار تعديل/خصم/حذف
- * لكل صف. زرا الخصم والحذف يظهران لحساب admin فقط (يطابق قيود الـ
- * backend: هذان الإجراءان محصوران بـ require_admin).
+ * كتالوج الخدمات، مع فلترة حسب التصنيف وأزرار تعديل/خصم/حذف لكل صف. زرا
+ * الخصم والحذف يظهران لحساب admin فقط (يطابق قيود الـ backend). يُعرَض
+ * كبطاقات واضحة على الهاتف (بدل جدول يتكسّر ويصعب قراءته على شاشة
+ * ضيقة) وكجدول تقليدي من شاشة md فأكبر.
  */
 export function ServicesTable({ services, onEdit, onManageRequirements, onSetDiscount, onDelete }: ServicesTableProps) {
   const { role } = useAuth();
@@ -32,7 +47,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
   );
 
   return (
-    <div className="rounded-2xl border border-white/20 bg-white/70 p-5 shadow-sm backdrop-blur-md">
+    <div className="rounded-2xl border border-white/20 bg-white/70 p-3 shadow-sm backdrop-blur-md sm:p-5">
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <FilterPill label="الكل" isActive={activeFilter === null} onClick={() => setActiveFilter(null)} />
         {Object.entries(serviceCategoryLabels).map(([value, label]) => (
@@ -40,7 +55,91 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
         ))}
       </div>
 
-      <div className="overflow-x-auto">
+      {/* عرض البطاقات — الهاتف والأجهزة اللوحية الصغيرة */}
+      <div className="space-y-3 md:hidden">
+        {filteredServices.map((service) => {
+          const CategoryIcon = serviceCategoryIcons[service.category];
+          return (
+            <div key={service.id} className="rounded-2xl border border-slate-200/80 bg-white p-4">
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
+                    <CategoryIcon size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-bold text-slate-900">{service.title}</h3>
+                    <p className="text-xs text-slate-500">{serviceCategoryLabels[service.category]}</p>
+                  </div>
+                </div>
+                <StatusBadge isActive={service.is_active} />
+              </div>
+
+              <div className="mb-3 flex items-center gap-1.5 text-sm">
+                {service.has_active_discount ? (
+                  <>
+                    <span className="text-slate-400 line-through">${service.base_price_usd}</span>
+                    <span className="font-semibold text-navy-700">${service.effective_price_usd}</span>
+                    <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                      %{service.discount_percentage} خصم
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-semibold text-navy-700">${service.base_price_usd}</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+                <button
+                  type="button"
+                  onClick={() => onEdit(service)}
+                  className="flex items-center gap-1 rounded-lg bg-navy-50 px-2.5 py-1.5 text-xs font-medium
+                    text-navy-700 transition-colors hover:bg-navy-100"
+                >
+                  <Pencil size={13} />
+                  تعديل
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onManageRequirements(service)}
+                  className="flex items-center gap-1 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium
+                    text-sky-700 transition-colors hover:bg-sky-100"
+                >
+                  <ClipboardList size={13} />
+                  المستندات
+                </button>
+                {isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onSetDiscount(service)}
+                      className="flex items-center gap-1 rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-medium
+                        text-violet-700 transition-colors hover:bg-violet-100"
+                    >
+                      <Percent size={13} />
+                      خصم
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(service)}
+                      className="flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-medium
+                        text-rose-700 transition-colors hover:bg-rose-100"
+                    >
+                      <Trash2 size={13} />
+                      حذف
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {filteredServices.length === 0 && (
+          <p className="py-8 text-center text-sm text-slate-400">لا توجد خدمات مطابقة</p>
+        )}
+      </div>
+
+      {/* عرض الجدول — من شاشة md فأكبر */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-start text-sm">
           <thead>
             <tr className="border-b border-slate-200/80 text-xs text-slate-500">
@@ -70,15 +169,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                   )}
                 </td>
                 <td className="px-3 py-3">
-                  <span
-                    className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
-                      service.is_active
-                        ? "border-navy-200 bg-navy-50 text-navy-700"
-                        : "border-slate-200 bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {service.is_active ? "مفعَّلة" : "معطَّلة"}
-                  </span>
+                  <StatusBadge isActive={service.is_active} />
                 </td>
                 <td className="sticky end-0 bg-white px-3 py-3 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">
                   <div className="flex items-center gap-1">
