@@ -6,6 +6,7 @@ import {
   CircleUser,
   CreditCard,
   LayoutDashboard,
+  MessageSquareText,
   PlaneTakeoff,
   RotateCcw,
   Share2,
@@ -91,6 +92,12 @@ export const navItems: NavItem[] = [
     label: "روابط التواصل الاجتماعي",
     path: "/dashboard/social-links",
     icon: Share2,
+    allowedRoles: ["admin"],
+  },
+  {
+    label: "آراء العملاء",
+    path: "/dashboard/reviews",
+    icon: MessageSquareText,
     allowedRoles: ["admin"],
   },
   {

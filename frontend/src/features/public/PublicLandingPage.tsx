@@ -14,6 +14,7 @@ import { PublicServiceCards } from "@/features/public/PublicServiceCards";
 import { PublicShipBooking } from "@/features/public/PublicShipBooking";
 import { PublicSocialLinksBar } from "@/features/public/PublicSocialLinksBar";
 import { usePublicServices } from "@/features/public/usePublicServices";
+import { ReviewsSection } from "@/features/reviews/ReviewsSection";
 import type { ServiceCategory } from "@/types/enums";
 
 /** أي تصنيف تفاعلي تُبنى واجهته الخاصة (بحث/حجز) بدل بطاقات خدمة عامة. */
@@ -198,6 +199,7 @@ export function PublicLandingPage() {
           </main>
         </div>
 
+        <ReviewsSection />
         <PublicSocialLinksBar />
       </div>
     </CurrencyProvider>
