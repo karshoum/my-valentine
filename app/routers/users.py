@@ -1,6 +1,6 @@
 # File: app/routers/users.py
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -13,7 +13,7 @@ from app.schemas.user import (
     AccountDeactivationRequest,
     PasswordChangeRequest,
     ProfileUpdateRequest,
-    StaffCreateRequest,
+    StaffPromoteRequest,
     UserOut,
     UserStatusUpdateRequest,
 )
@@ -65,14 +65,14 @@ def deactivate_my_account(
     return {"detail": "تم إيقاف حسابك بنجاح"}
 
 
-@router.post("/staff", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def create_staff(
-    payload: StaffCreateRequest,
+@router.post("/promote", response_model=UserOut)
+def promote_to_staff(
+    payload: StaffPromoteRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
 ) -> User:
-    """ينشئ حساب موظف أو مدير جديداً (بصلاحية admin فقط)."""
-    return user_service.create_staff_user(db, payload, admin_user)
+    """يرقّي حساب عميل عادي موجود إلى موظف أو مدير (بصلاحية admin فقط)."""
+    return user_service.promote_user_to_staff(db, payload, admin_user)
 
 
 @router.get("", response_model=list[UserOut])

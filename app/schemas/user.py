@@ -7,13 +7,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from app.models.enums import UserRole
 
 
-class StaffCreateRequest(BaseModel):
-    """بيانات إنشاء حساب موظف أو مدير جديد (بصلاحية admin فقط)."""
+class StaffPromoteRequest(BaseModel):
+    """طلب ترقية حساب عميل عادي موجود مسبقاً إلى موظف أو مدير (بصلاحية admin فقط)."""
 
-    full_name: str = Field(min_length=2, max_length=100)
-    email: EmailStr | None = None
-    phone: str = Field(min_length=6, max_length=20)
-    password: str = Field(min_length=8, max_length=128)
+    user_id: int
     role: UserRole = Field(description="admin أو employee فقط")
 
 

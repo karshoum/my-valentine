@@ -2,51 +2,42 @@
 
 from decimal import Decimal
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
-from app.core.security import hash_password
 from app.models.agent import AgentProfile
 from app.models.enums import UserRole
 from app.models.service import B2BServiceRate, Service
 from app.models.user import User
-from app.schemas.agent import AgentCreateRequest, AgentUpdateRequest, CustomRateCreateRequest
+from app.schemas.agent import AgentPromoteRequest, AgentUpdateRequest, CustomRateCreateRequest
 from app.services import audit_service
 
 
-def create_agent(db: Session, payload: AgentCreateRequest, created_by: User) -> AgentProfile:
+def promote_user_to_agent(db: Session, payload: AgentPromoteRequest, promoted_by: User) -> AgentProfile:
     """
-    ينشئ حساب مستخدم بدور agent مع ملف تعريف وكيل B2B مرتبط به.
+    يرقّي حساب عميل عادي موجود مسبقاً إلى وكيل B2B، بإنشاء ملف تعريف
+    الوكيل المرتبط به بدل إنشاء حساب مستخدم جديد من الصفر.
 
     Args:
         db: جلسة قاعدة البيانات.
-        payload: بيانات الحساب واسم الوكالة ووضع الدفع وحدودها المالية.
-        created_by: المدير الذي ينفّذ عملية الإنشاء.
+        payload: معرّف حساب العميل المُراد ترقيته، واسم الوكالة ووضع
+        الدفع وحدودها المالية.
+        promoted_by: المدير الذي ينفّذ الترقية.
 
     Returns:
         AgentProfile: ملف الوكيل المُنشَأ حديثاً.
 
     Raises:
-        AppException: 409 إذا كان البريد أو الهاتف مسجلاً مسبقاً.
+        AppException: 404 إذا لم يوجد المستخدم، 400 إذا كان الحساب ليس
+        حساب عميل عادي أصلاً.
     """
-    existing_filters = [User.phone == payload.phone]
-    if payload.email:
-        existing_filters.append(User.email == payload.email)
+    user = db.query(User).filter(User.id == payload.user_id).first()
+    if not user:
+        raise AppException("المستخدم غير موجود", status_code=404)
+    if user.role != UserRole.customer:
+        raise AppException("يمكن ترقية حسابات العملاء العاديين فقط", status_code=400)
 
-    existing = db.query(User).filter(or_(*existing_filters)).first()
-    if existing:
-        raise AppException("البريد الإلكتروني أو رقم الهاتف مسجل مسبقاً", status_code=409)
-
-    user = User(
-        full_name=payload.full_name,
-        email=payload.email,
-        phone=payload.phone,
-        password_hash=hash_password(payload.password),
-        role=UserRole.agent,
-    )
-    db.add(user)
-    db.flush()  # للحصول على user.id قبل إنشاء ملف الوكيل
+    user.role = UserRole.agent
 
     agent = AgentProfile(
         user_id=user.id,
@@ -59,9 +50,9 @@ def create_agent(db: Session, payload: AgentCreateRequest, created_by: User) -> 
 
     audit_service.log_action(
         db,
-        user_id=created_by.id,
-        action="create_agent",
-        details={"agency_name": payload.agency_name, "payment_mode": payload.payment_mode.value},
+        user_id=promoted_by.id,
+        action="promote_user_to_agent",
+        details={"target_user_id": user.id, "agency_name": payload.agency_name, "payment_mode": payload.payment_mode.value},
     )
     db.commit()
     db.refresh(agent)

@@ -12,8 +12,8 @@ from app.models.enums import UserRole
 from app.models.user import User
 from app.models.wallet import AgentWalletLog
 from app.schemas.agent import (
-    AgentCreateRequest,
     AgentOut,
+    AgentPromoteRequest,
     AgentUpdateRequest,
     CustomRateCreateRequest,
     CustomRateOut,
@@ -24,14 +24,14 @@ from app.services import agent_service, wallet_service
 router = APIRouter(prefix="/api/v1/agents", tags=["الوكلاء (B2B)"])
 
 
-@router.post("", response_model=AgentOut, status_code=status.HTTP_201_CREATED)
-def create_agent(
-    payload: AgentCreateRequest,
+@router.post("/promote", response_model=AgentOut, status_code=status.HTTP_201_CREATED)
+def promote_to_agent(
+    payload: AgentPromoteRequest,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin),
 ) -> AgentProfile:
-    """ينشئ حساب وكيل B2B جديداً مع ملف تعريفه (admin فقط)."""
-    return agent_service.create_agent(db, payload, admin_user)
+    """يرقّي حساب عميل عادي موجود إلى وكيل B2B مع إنشاء ملف تعريفه (admin فقط)."""
+    return agent_service.promote_user_to_agent(db, payload, admin_user)
 
 
 @router.get("", response_model=list[AgentOut])

@@ -72,11 +72,8 @@ export interface AccountDeactivationRequest {
   password: string;
 }
 
-/** مطابق لـ app.schemas.user.StaffCreateRequest. */
-export interface StaffCreateRequest {
-  full_name: string;
-  email: string | null;
-  phone: string;
-  password: string;
+/** مطابق لـ app.schemas.user.StaffPromoteRequest. */
+export interface StaffPromoteRequest {
+  user_id: number;
   role: "admin" | "employee";
 }

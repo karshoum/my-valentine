@@ -1,57 +1,49 @@
 # File: app/services/user_service.py
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppException
 from app.core.security import hash_password, verify_password
 from app.models.enums import UserRole
 from app.models.user import User
-from app.schemas.user import ProfileUpdateRequest, StaffCreateRequest
+from app.schemas.user import ProfileUpdateRequest, StaffPromoteRequest
 from app.services import audit_service
 
 
-def create_staff_user(db: Session, payload: StaffCreateRequest, created_by: User) -> User:
+def promote_user_to_staff(db: Session, payload: StaffPromoteRequest, promoted_by: User) -> User:
     """
-    ينشئ حساب موظف أو مدير جديد (بصلاحية admin فقط)، ويسجّل الحركة في
-    سجل التدقيق.
+    يرقّي حساب عميل عادي موجود مسبقاً إلى موظف أو مدير (admin فقط)، بدل
+    إنشاء حساب جديد وإدخال بياناته يدوياً — الشخص يسجّل حسابه العادي
+    بنفسه أولاً ثم يختاره المدير من قائمة العملاء للترقية.
 
     Args:
         db: جلسة قاعدة البيانات.
-        payload: بيانات الحساب الجديد ودوره (admin أو employee).
-        created_by: المدير الذي ينفّذ عملية الإنشاء.
+        payload: معرّف حساب العميل المُراد ترقيته والدور الجديد (admin أو employee).
+        promoted_by: المدير الذي ينفّذ الترقية.
 
     Returns:
-        User: حساب الموظف/المدير المُنشَأ حديثاً.
+        User: الحساب بعد الترقية.
 
     Raises:
-        AppException: 400 إذا كان الدور غير مسموح، أو 409 إذا كان
-        البريد/الهاتف مسجلاً مسبقاً.
+        AppException: 400 إذا كان الدور المطلوب غير مسموح أو كان الحساب
+        ليس حساب عميل عادي أصلاً، أو 404 إذا لم يوجد المستخدم.
     """
     if payload.role not in (UserRole.admin, UserRole.employee):
-        raise AppException("لا يمكن إنشاء مستخدم بهذا الدور من هذه الشاشة", status_code=400)
+        raise AppException("لا يمكن الترقية لهذا الدور من هذه الشاشة", status_code=400)
 
-    existing_filters = [User.phone == payload.phone]
-    if payload.email:
-        existing_filters.append(User.email == payload.email)
+    user = db.query(User).filter(User.id == payload.user_id).first()
+    if not user:
+        raise AppException("المستخدم غير موجود", status_code=404)
+    if user.role != UserRole.customer:
+        raise AppException("يمكن ترقية حسابات العملاء العاديين فقط", status_code=400)
 
-    existing = db.query(User).filter(or_(*existing_filters)).first()
-    if existing:
-        raise AppException("البريد الإلكتروني أو رقم الهاتف مسجل مسبقاً", status_code=409)
+    user.role = payload.role
 
-    user = User(
-        full_name=payload.full_name,
-        email=payload.email,
-        phone=payload.phone,
-        password_hash=hash_password(payload.password),
-        role=payload.role,
-    )
-    db.add(user)
     audit_service.log_action(
         db,
-        user_id=created_by.id,
-        action="create_staff_user",
-        details={"created_role": payload.role.value, "phone": payload.phone},
+        user_id=promoted_by.id,
+        action="promote_user_to_staff",
+        details={"target_user_id": user.id, "new_role": payload.role.value},
     )
     db.commit()
     db.refresh(user)

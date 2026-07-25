@@ -3,18 +3,15 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import PaymentMode
 
 
-class AgentCreateRequest(BaseModel):
-    """بيانات إنشاء حساب وكيل B2B جديد مع ملفه (بصلاحية admin فقط)."""
+class AgentPromoteRequest(BaseModel):
+    """بيانات ترقية حساب عميل عادي موجود مسبقاً إلى وكيل B2B (بصلاحية admin فقط)."""
 
-    full_name: str = Field(min_length=2, max_length=100)
-    email: EmailStr | None = None
-    phone: str = Field(min_length=6, max_length=20)
-    password: str = Field(min_length=8, max_length=128)
+    user_id: int
     agency_name: str = Field(min_length=2, max_length=100)
     payment_mode: PaymentMode
     credit_limit: Decimal = Decimal("0.00")

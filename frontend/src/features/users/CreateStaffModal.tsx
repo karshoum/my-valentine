@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
-import { useCreateStaff } from "@/features/users/useCreateStaff";
+import { CustomerPicker } from "@/features/users/CustomerPicker";
+import { usePromoteToStaff } from "@/features/users/usePromoteToStaff";
 import { inputBaseClass } from "@/lib/designTokens";
 import type { UserRole } from "@/types/enums";
 import type { UserOut } from "@/types/user";
@@ -13,56 +14,36 @@ interface CreateStaffModalProps {
   onCreated: (user: UserOut) => void;
 }
 
-/** نموذج إنشاء حساب موظف أو مدير جديد (admin فقط). */
+/**
+ * نموذج ترقية حساب عميل عادي مسجَّل مسبقاً إلى موظف أو مدير (admin فقط)
+ * — يختار المدير الحساب من قائمة العملاء الموجودين بدل ملء بياناته
+ * يدوياً؛ الشخص لازم يكون سجّل حسابه العادي بنفسه أولاً.
+ */
 export function CreateStaffModal({ onClose, onCreated }: CreateStaffModalProps) {
-  const { createStaff, isSubmitting, error } = useCreateStaff();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const { promoteToStaff, isSubmitting, error } = usePromoteToStaff();
+  const [selectedCustomer, setSelectedCustomer] = useState<UserOut | null>(null);
   const [role, setRole] = useState<Extract<UserRole, "admin" | "employee">>("employee");
 
-  const canSubmit = fullName.trim().length >= 2 && phone.trim().length >= 6 && password.length >= 8;
-
   const handleSubmit = async () => {
-    const user = await createStaff({
-      full_name: fullName.trim(),
-      email: email.trim() || null,
-      phone: phone.trim(),
-      password,
-      role,
-    });
+    if (!selectedCustomer) return;
+    const user = await promoteToStaff({ user_id: selectedCustomer.id, role });
     if (user) onCreated(user);
   };
 
   return (
-    <Modal title="إضافة موظف أو مدير جديد" onClose={onClose}>
+    <Modal title="ترقية عميل إلى موظف أو مدير" onClose={onClose}>
       <div className="space-y-3">
-        <input
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          placeholder="الاسم الكامل"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          placeholder="رقم الهاتف"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="البريد الإلكتروني (اختياري)"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          type="password"
-          placeholder="كلمة المرور"
-          className={`w-full ${inputBaseClass}`}
-        />
+        <p className="text-xs text-slate-500">
+          اختر حساب عميل مسجَّل بالفعل من القائمة أدناه، ثم حدّد الدور الجديد له.
+        </p>
+
+        <CustomerPicker selectedCustomer={selectedCustomer} onSelect={setSelectedCustomer} />
+
+        {selectedCustomer && (
+          <div className="rounded-xl border border-navy-100 bg-navy-50/50 p-3 text-sm text-navy-800">
+            الحساب المختار: <span className="font-semibold">{selectedCustomer.full_name}</span>
+          </div>
+        )}
 
         <select
           value={role}
@@ -78,12 +59,12 @@ export function CreateStaffModal({ onClose, onCreated }: CreateStaffModalProps) 
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!canSubmit || isSubmitting}
+          disabled={!selectedCustomer || isSubmitting}
           className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
             duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
-          {isSubmitting ? "جارٍ الإنشاء..." : "إنشاء الحساب"}
+          {isSubmitting ? "جارٍ الترقية..." : "ترقية الحساب"}
         </button>
       </div>
     </Modal>

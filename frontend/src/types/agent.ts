@@ -22,12 +22,9 @@ export interface CustomRateOut {
   custom_price_usd: string;
 }
 
-/** مطابق لـ app.schemas.agent.AgentCreateRequest. */
-export interface AgentCreateRequest {
-  full_name: string;
-  email: string | null;
-  phone: string;
-  password: string;
+/** مطابق لـ app.schemas.agent.AgentPromoteRequest. */
+export interface AgentPromoteRequest {
+  user_id: number;
   agency_name: string;
   payment_mode: PaymentMode;
   credit_limit: string;

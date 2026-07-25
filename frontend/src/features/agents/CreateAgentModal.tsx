@@ -3,36 +3,39 @@
 import { useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
+import { usePromoteToAgent } from "@/features/agents/usePromoteToAgent";
+import { CustomerPicker } from "@/features/users/CustomerPicker";
 import { inputBaseClass } from "@/lib/designTokens";
 import { paymentModeLabels } from "@/lib/paymentModeLabels";
-import { useCreateAgent } from "@/features/agents/useCreateAgent";
 import type { AgentOut } from "@/types/agent";
 import type { PaymentMode } from "@/types/enums";
+import type { UserOut } from "@/types/user";
 
 interface CreateAgentModalProps {
   onClose: () => void;
   onCreated: (agent: AgentOut) => void;
 }
 
-/** نموذج إنشاء حساب وكيل B2B جديد (admin فقط). */
+/**
+ * نموذج ترقية حساب عميل عادي مسجَّل مسبقاً إلى وكيل B2B (admin فقط) —
+ * يختار المدير الحساب من قائمة العملاء الموجودين ثم يُدخِل بيانات
+ * الوكالة فقط، بدل ملء كل بيانات الحساب من الصفر.
+ */
 export function CreateAgentModal({ onClose, onCreated }: CreateAgentModalProps) {
-  const { createAgent, isSubmitting, error } = useCreateAgent();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const { promoteToAgent, isSubmitting, error } = usePromoteToAgent();
+  const [selectedCustomer, setSelectedCustomer] = useState<UserOut | null>(null);
   const [agencyName, setAgencyName] = useState("");
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay_per_order");
   const [creditLimit, setCreditLimit] = useState("0");
   const [discountRate, setDiscountRate] = useState("0");
 
+  const canSubmit = Boolean(selectedCustomer) && agencyName.trim().length >= 2;
+
   const handleSubmit = async () => {
-    const agent = await createAgent({
-      full_name: fullName,
-      email: email || null,
-      phone,
-      password,
-      agency_name: agencyName,
+    if (!selectedCustomer) return;
+    const agent = await promoteToAgent({
+      user_id: selectedCustomer.id,
+      agency_name: agencyName.trim(),
       payment_mode: paymentMode,
       credit_limit: creditLimit,
       discount_rate: discountRate,
@@ -41,37 +44,24 @@ export function CreateAgentModal({ onClose, onCreated }: CreateAgentModalProps) 
   };
 
   return (
-    <Modal title="إضافة وكيل B2B جديد" onClose={onClose}>
+    <Modal title="ترقية عميل إلى وكيل B2B" onClose={onClose}>
       <div className="space-y-3">
-        <input
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          placeholder="الاسم الكامل"
-          className={`w-full ${inputBaseClass}`}
-        />
+        <p className="text-xs text-slate-500">
+          اختر حساب عميل مسجَّل بالفعل من القائمة أدناه، ثم أدخل بيانات الوكالة.
+        </p>
+
+        <CustomerPicker selectedCustomer={selectedCustomer} onSelect={setSelectedCustomer} />
+
+        {selectedCustomer && (
+          <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-3 text-sm text-violet-800">
+            الحساب المختار: <span className="font-semibold">{selectedCustomer.full_name}</span>
+          </div>
+        )}
+
         <input
           value={agencyName}
           onChange={(event) => setAgencyName(event.target.value)}
           placeholder="اسم الوكالة"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          placeholder="رقم الهاتف"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="البريد الإلكتروني (اختياري)"
-          className={`w-full ${inputBaseClass}`}
-        />
-        <input
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          type="password"
-          placeholder="كلمة المرور"
           className={`w-full ${inputBaseClass}`}
         />
 
@@ -109,12 +99,12 @@ export function CreateAgentModal({ onClose, onCreated }: CreateAgentModalProps) 
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={!canSubmit || isSubmitting}
           className="w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
             duration-300 hover:scale-[1.02] hover:bg-violet-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"
         >
-          {isSubmitting ? "جارٍ الإنشاء..." : "إنشاء حساب الوكيل"}
+          {isSubmitting ? "جارٍ الترقية..." : "ترقية إلى وكيل"}
         </button>
       </div>
     </Modal>
