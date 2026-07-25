@@ -52,16 +52,18 @@ export function PublicLandingPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (!category || !VALID_SECTIONS.has(category as PublicSection)) {
-    return <Navigate to="/services/flight" replace />;
-  }
-  const activeCategory = category as PublicSection;
+  const isValidCategory = Boolean(category && VALID_SECTIONS.has(category as PublicSection));
+  const activeCategory = (isValidCategory ? category : "flight") as PublicSection;
 
   const isInteractive = INTERACTIVE_CATEGORIES.includes(activeCategory as ServiceCategory);
   const isComingSoon = activeCategory === COMING_SOON;
   const { services, isLoading, error } = usePublicServices(
     isInteractive || isComingSoon ? null : (activeCategory as ServiceCategory),
   );
+
+  if (!isValidCategory) {
+    return <Navigate to="/services/flight" replace />;
+  }
 
   const filteredServices = isInteractive || isComingSoon ? [] : services;
 

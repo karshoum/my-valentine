@@ -11,6 +11,7 @@ update_order_status، والتي تتحقق من مصفوفة الانتقالا
 import random
 import string
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
@@ -21,7 +22,14 @@ from app.models.flight_booking import FlightBookingDetail
 from app.models.order import Order, OrderPassenger, OrderStatusLog
 from app.models.user import User
 from app.schemas.order import OrderCreateRequest
-from app.services import agent_service, currency_service, email_service, flight_booking_service, service_service
+from app.services import (
+    agent_service,
+    currency_service,
+    email_service,
+    flight_booking_service,
+    service_service,
+    ship_booking_fee_service,
+)
 from app.services.wallet_service import deduct_for_order
 
 _FLIGHT_BOOKING_CATEGORIES = (ServiceCategory.flight, ServiceCategory.ship_ticket)
@@ -77,8 +85,17 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
         agent = agent_service.get_agent_by_user_or_404(db, current_user.id)
 
     if payload.flight_booking:
-        fee_setting = flight_booking_service.get_current_fee_setting(db)
+        fee_setting = (
+            ship_booking_fee_service.get_current_fee_setting(db)
+            if service.category == ServiceCategory.ship_ticket
+            else flight_booking_service.get_current_fee_setting(db)
+        )
         fee_amount_usd = flight_booking_service.calculate_fee_amount(payload.flight_booking.base_fare_usd, fee_setting)
+        discount_percentage = service_service.get_ticket_discount_percentage(db, service.category)
+        if discount_percentage:
+            fee_amount_usd = (fee_amount_usd * (Decimal("1") - discount_percentage / Decimal("100"))).quantize(
+                Decimal("0.01")
+            )
         price_usd = payload.flight_booking.base_fare_usd + fee_amount_usd
     else:
         price_usd = agent_service.get_effective_price_usd(db, service, agent)

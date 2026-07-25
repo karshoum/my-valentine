@@ -8,6 +8,28 @@ import { useCurrency } from "@/features/public/useCurrency";
 import { usePublicShipRoutes } from "@/features/public/usePublicShipRoutes";
 import { useShipRouteQuote } from "@/features/public/useShipRouteQuote";
 import { glassPanelClass, inputBaseClass } from "@/lib/designTokens";
+import type { FlightOfferOut } from "@/types/flightBooking";
+import type { ShipRouteOut } from "@/types/shipRoute";
+import type { ShipRouteQuoteOut } from "@/types/shipBookingFee";
+
+const todayIsoDate = () => new Date().toISOString().slice(0, 10);
+
+/** يبني عرضاً بشكل FlightOfferOut من خط باخرة وتسعيرته، لتمريره عبر نفس آلية "احجز الآن" المستخدمة لحجوزات الطيران. */
+function buildShipOffer(route: ShipRouteOut, quote: ShipRouteQuoteOut, travelDate: string): FlightOfferOut {
+  return {
+    airline_code: "SHIP",
+    airline_name: "باخرة",
+    origin: route.origin_city,
+    destination: route.destination_city,
+    departure_at: `${travelDate}T00:00:00`,
+    arrival_at: `${travelDate}T00:00:00`,
+    stops: 0,
+    duration_minutes: 0,
+    base_fare_usd: quote.base_subtotal_usd,
+    fee_amount_usd: quote.fee_after_discount_usd,
+    total_price_usd: quote.total_price_usd,
+  };
+}
 
 /** قسم حجز تذاكر البواخر: خطوط مُعدّة من المدير + سعر مُحتسَب من الخادم (السعر الحقيقي + رسم الحجز بعد أي خصم). */
 export function PublicShipBooking() {
@@ -16,6 +38,7 @@ export function PublicShipBooking() {
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
+  const [travelDate, setTravelDate] = useState("");
 
   const selectedRoute = useMemo(
     () => routes.find((r) => r.id === selectedRouteId) ?? null,
@@ -25,6 +48,8 @@ export function PublicShipBooking() {
   const { formatUsd } = useCurrency();
 
   const hasPricing = selectedRoute && Number(selectedRoute.adult_price_usd) > 0;
+  const shipOffer =
+    selectedRoute && quote && travelDate ? buildShipOffer(selectedRoute, quote, travelDate) : null;
 
   return (
     <div className="space-y-4">
@@ -74,6 +99,16 @@ export function PublicShipBooking() {
               <label className="mb-1 block text-xs font-semibold text-slate-500">رضّع</label>
               <input type="number" min={0} max={20} value={infants} onChange={(e) => setInfants(Number(e.target.value) || 0)} className={`w-full ${inputBaseClass}`} />
             </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-slate-500">تاريخ السفر</label>
+              <input
+                type="date"
+                min={todayIsoDate()}
+                value={travelDate}
+                onChange={(e) => setTravelDate(e.target.value)}
+                className={`w-full ${inputBaseClass}`}
+              />
+            </div>
           </div>
         )}
 
@@ -115,13 +150,24 @@ export function PublicShipBooking() {
                   <p className="text-lg font-bold text-navy-700">
                     الإجمالي: {quote ? formatUsd(quote.total_price_usd) : "..."}
                   </p>
-                  <BookNowLink
-                    category="ship_ticket"
-                    className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
-                      shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
-                  >
-                    احجز الآن
-                  </BookNowLink>
+                  {shipOffer ? (
+                    <BookNowLink
+                      category="ship_ticket"
+                      flightOffer={shipOffer}
+                      className="rounded-xl bg-navy-600 px-4 py-2 text-sm font-semibold text-white
+                        shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-navy-500"
+                    >
+                      احجز الآن
+                    </BookNowLink>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="cursor-not-allowed rounded-xl bg-slate-300 px-4 py-2 text-sm font-semibold text-slate-500"
+                    >
+                      {travelDate ? "جارٍ حساب السعر..." : "اختر تاريخ السفر"}
+                    </button>
+                  )}
                 </div>
               </>
             ) : (

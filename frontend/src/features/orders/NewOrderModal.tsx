@@ -151,7 +151,16 @@ export function NewOrderModal({
 
         {requiresFlightBooking &&
           (selectedFlightOffer ? (
-            <SelectedFlightCard offer={selectedFlightOffer} onChangeFlight={() => setSelectedFlightOffer(null)} />
+            <SelectedFlightCard
+              offer={selectedFlightOffer}
+              onChangeFlight={
+                selectedService?.category === "flight" ? () => setSelectedFlightOffer(null) : undefined
+              }
+            />
+          ) : selectedService?.category === "ship_ticket" ? (
+            <p className="rounded-xl border border-gold-200 bg-gold-50/60 p-3 text-xs text-gold-800">
+              يُرجى اختيار خط الباخرة والتاريخ من الصفحة العامة أولاً عبر زر "احجز الآن".
+            </p>
           ) : (
             <FlightSearchSection onOfferSelected={setSelectedFlightOffer} />
           ))}
