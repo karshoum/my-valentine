@@ -7,6 +7,7 @@ import {
   CreditCard,
   Landmark,
   LayoutDashboard,
+  MapPin,
   MessageSquareText,
   PlaneTakeoff,
   RotateCcw,
@@ -99,6 +100,12 @@ export const navItems: NavItem[] = [
     label: "روابط التواصل الاجتماعي",
     path: "/dashboard/social-links",
     icon: Share2,
+    allowedRoles: ["admin"],
+  },
+  {
+    label: "مكاتبنا",
+    path: "/dashboard/offices",
+    icon: MapPin,
     allowedRoles: ["admin"],
   },
   {

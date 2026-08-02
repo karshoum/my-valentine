@@ -16,6 +16,7 @@ from app.routers import (
     files,
     flight_bookings,
     leads,
+    offices,
     orders,
     payment_settings,
     payments,
@@ -87,6 +88,7 @@ app.include_router(leads.router)
 app.include_router(audit.router)
 app.include_router(ship_routes.router)
 app.include_router(social_links.router)
+app.include_router(offices.router)
 app.include_router(reviews.router)
 app.include_router(files.router)
 

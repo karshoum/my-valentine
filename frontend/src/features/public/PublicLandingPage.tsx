@@ -11,6 +11,7 @@ import { ComingSoonSection } from "@/features/public/ComingSoonSection";
 import { CurrencyProvider } from "@/features/public/CurrencyContext";
 import { CurrencySwitcher } from "@/features/public/CurrencySwitcher";
 import { PublicFlightSearch } from "@/features/public/PublicFlightSearch";
+import { PublicOfficesSection } from "@/features/public/PublicOfficesSection";
 import { PublicServiceCards } from "@/features/public/PublicServiceCards";
 import { PublicShipBooking } from "@/features/public/PublicShipBooking";
 import { PublicSocialLinksBar } from "@/features/public/PublicSocialLinksBar";
@@ -209,6 +210,7 @@ export function PublicLandingPage() {
         </div>
 
         <ReviewsSection />
+        <PublicOfficesSection />
         <PublicSocialLinksBar />
       </div>
     </CurrencyProvider>

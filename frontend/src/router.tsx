@@ -12,6 +12,7 @@ import { AgentsPage } from "@/features/agents/AgentsPage";
 import { CurrenciesPage } from "@/features/currencies/CurrenciesPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { BookingFeeSettingsPage } from "@/features/flights/BookingFeeSettingsPage";
+import { OfficesPage } from "@/features/offices/OfficesPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
 import { ShipRoutesPage } from "@/features/shipRoutes/ShipRoutesPage";
 import { PaymentSettingsPage } from "@/features/payments/PaymentSettingsPage";
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
       { path: "flight-booking-fee", element: <BookingFeeSettingsPage /> },
       { path: "ship-routes", element: <ShipRoutesPage /> },
       { path: "social-links", element: <SocialLinksPage /> },
+      { path: "offices", element: <OfficesPage /> },
       { path: "reviews", element: <ReviewsAdminPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
