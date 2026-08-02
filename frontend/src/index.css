@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", "Tajawal", system-ui, sans-serif;
+
+  /* الهوية البصرية الرسمية (من شعار الوكالة): كحلي أساسي + ذهبي ثانوي على خلفية كريمية. */
+  --color-navy-50: #eef1f5;
+  --color-navy-100: #dbe0e9;
+  --color-navy-200: #b3bfd1;
+  --color-navy-300: #8697b3;
+  --color-navy-400: #566d90;
+  --color-navy-500: #3a5273;
+  --color-navy-600: #22364e;
+  --color-navy-700: #1a2a3d;
+  --color-navy-800: #131f2d;
+  --color-navy-900: #0c141e;
+
+  --color-gold-50: #faf6ec;
+  --color-gold-100: #f3e9d0;
+  --color-gold-200: #e8d4a8;
+  --color-gold-300: #ddbf80;
+  --color-gold-400: #cba769;
+  --color-gold-500: #b6923f;
+  --color-gold-600: #96723d;
+  --color-gold-700: #7a5c30;
+  --color-gold-800: #5c4524;
+
+  --color-cream-50: #fbf9f4;
+  --color-cream-100: #f4f2e5;
+  --color-cream-200: #ece5d3;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  @apply bg-gradient-to-br from-cream-50 to-cream-200/60 text-slate-800;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .interactive-scale {
+    @apply transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .focus-ring-navy {
+    @apply border-slate-200/80 bg-slate-50/50 focus:border-navy-500 focus:ring-2 focus:ring-gold-500/30 focus:outline-none;
+  }
+}

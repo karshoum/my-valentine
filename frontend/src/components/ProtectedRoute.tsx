@@ -1,0 +1,17 @@
+// File: frontend/src/components/ProtectedRoute.tsx
+
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+
+import { useAuth } from "@/features/auth/useAuth";
+
+/** يحمي الصفحات الداخلية بإعادة توجيه أي مستخدم غير مسجَّل إلى شاشة الدخول. */
+export function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}

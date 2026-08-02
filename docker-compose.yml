@@ -1,0 +1,48 @@
+# تحذير: القيم السرّية أدناه (كلمة مرور قاعدة البيانات، JWT_SECRET_KEY،
+# SIGNED_URL_SECRET) قيم افتراضية للتطوير المحلي فقط. يُمنع استخدام هذا
+# الملف كما هو في أي بيئة إنتاج حقيقية — استبدل كل قيمة بسر عشوائي طويل
+# خاص بك أولاً (عبر متغيرات بيئة النشر، وليس بتعديل هذا الملف مباشرة).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: paradise_user
+      POSTGRES_PASSWORD: paradise_password
+      POSTGRES_DB: wakalat_paradise
+    ports:
+      - "5432:5432"
+    volumes:
+      - paradise_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paradise_user -d wakalat_paradise"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://paradise_user:paradise_password@db:5432/wakalat_paradise
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret
+      SIGNED_URL_SECRET: change_this_signed_url_secret
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage/private:/app/storage/private
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m scripts.seed_initial_data &&
+             python -m scripts.seed_agency_services &&
+             python -m scripts.seed_service_requirements &&
+             python -m scripts.seed_ship_routes &&
+             python -m scripts.set_launch_prices &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  paradise_pg_data:

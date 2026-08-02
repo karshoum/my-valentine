@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+env/
+storage/private/*
+!storage/private/.gitkeep
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.DS_Store

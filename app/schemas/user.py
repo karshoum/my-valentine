@@ -1,0 +1,59 @@
+# File: app/schemas/user.py
+
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from app.models.enums import UserRole
+
+
+class StaffPromoteRequest(BaseModel):
+    """طلب ترقية حساب عميل عادي موجود مسبقاً إلى موظف أو مدير (بصلاحية admin فقط)."""
+
+    user_id: int
+    role: UserRole = Field(description="admin أو employee فقط")
+
+
+class UserStatusUpdateRequest(BaseModel):
+    """طلب تفعيل/تعطيل حساب مستخدم."""
+
+    is_active: bool
+
+
+class PasswordChangeRequest(BaseModel):
+    """طلب تغيير كلمة المرور للمستخدم الحالي (يتطلب كلمة المرور القديمة)."""
+
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class UserOut(BaseModel):
+    """تمثيل مستخدم آمن للإرجاع في الاستجابات (بدون password_hash)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    email: EmailStr | None
+    phone: str | None
+    whatsapp_number: str | None
+    role: UserRole
+    is_active: bool
+    created_at: datetime
+
+
+class ProfileUpdateRequest(BaseModel):
+    """
+    تعديل ذاتي لبيانات الحساب من شاشة "حسابي" (لا يشمل الدور أو كلمة
+    المرور). الحقول غير المُرسَلة تبقى دون تغيير.
+    """
+
+    full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    email: EmailStr | None = None
+    whatsapp_number: str | None = Field(default=None, min_length=6, max_length=20)
+
+
+class AccountDeactivationRequest(BaseModel):
+    """طلب إيقاف الحساب الذاتي، يتطلب تأكيد كلمة المرور الحالية لمنع الإيقاف العرَضي."""
+
+    password: str

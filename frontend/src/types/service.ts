@@ -1,0 +1,85 @@
+// File: frontend/src/types/service.ts
+
+import type { ServiceCategory } from "@/types/enums";
+
+/** مطابق لـ app.schemas.service.VisaResidencyDetailIn. */
+export interface VisaResidencyDetailIn {
+  country: string;
+  type: string;
+  requirements: string | null;
+  processing_time: string | null;
+  is_dynamic_price: boolean;
+}
+
+/** مطابق لـ app.schemas.service.VisaResidencyDetailOut. */
+export interface VisaResidencyDetailOut extends VisaResidencyDetailIn {
+  id: number;
+  service_id: number;
+}
+
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementOut. */
+export interface ServiceRequirementOut {
+  id: number;
+  service_id: number;
+  requirement_text: string;
+  display_order: number;
+}
+
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementCreateRequest. */
+export interface ServiceRequirementCreateRequest {
+  requirement_text: string;
+  display_order: number;
+}
+
+/** مطابق لـ app.schemas.service_requirement.ServiceRequirementUpdateRequest. */
+export interface ServiceRequirementUpdateRequest {
+  requirement_text?: string;
+  display_order?: number;
+}
+
+/** مطابق لـ app.schemas.service.ServiceOut. */
+export interface ServiceOut {
+  id: number;
+  category: ServiceCategory;
+  title: string;
+  description: string | null;
+  base_price_usd: string;
+  is_active: boolean;
+  created_at: string;
+  discount_percentage: string | null;
+  discount_valid_until: string | null;
+  has_active_discount: boolean;
+  effective_price_usd: string;
+  pinned_currency_code: string | null;
+  pinned_price_amount: string | null;
+  effective_pinned_price_amount: string | null;
+  visa_residency_detail: VisaResidencyDetailOut | null;
+  requirements: ServiceRequirementOut[];
+}
+
+/** مطابق لـ app.schemas.service.ServiceCreateRequest. */
+export interface ServiceCreateRequest {
+  category: ServiceCategory;
+  title: string;
+  description: string | null;
+  base_price_usd: string;
+  visa_residency_detail: VisaResidencyDetailIn | null;
+  pinned_currency_code?: string | null;
+  pinned_price_amount?: string | null;
+}
+
+/** مطابق لـ app.schemas.service.ServiceUpdateRequest. */
+export interface ServiceUpdateRequest {
+  title?: string;
+  description?: string | null;
+  base_price_usd?: string;
+  is_active?: boolean;
+  pinned_currency_code?: string | null;
+  pinned_price_amount?: string | null;
+}
+
+/** مطابق لـ app.schemas.service.ServiceDiscountUpdateRequest. */
+export interface ServiceDiscountUpdateRequest {
+  discount_percentage: string | null;
+  discount_valid_until: string | null;
+}

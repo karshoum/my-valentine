@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+          JWT_SECRET_KEY: "ci-test-secret"
+          SIGNED_URL_SECRET: "ci-signed-url-secret"
+          CORS_ORIGINS: '["http://localhost:3000"]'
+        run: pytest -v
+
+      - name: Audit Python dependencies for known vulnerabilities
+        run: pip-audit -r requirements.txt
+
+  frontend-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Audit frontend dependencies for known vulnerabilities
+        working-directory: frontend
+        run: npm audit --audit-level=high
