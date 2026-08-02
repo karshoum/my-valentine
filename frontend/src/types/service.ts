@@ -50,6 +50,9 @@ export interface ServiceOut {
   discount_valid_until: string | null;
   has_active_discount: boolean;
   effective_price_usd: string;
+  pinned_currency_code: string | null;
+  pinned_price_amount: string | null;
+  effective_pinned_price_amount: string | null;
   visa_residency_detail: VisaResidencyDetailOut | null;
   requirements: ServiceRequirementOut[];
 }
@@ -61,6 +64,8 @@ export interface ServiceCreateRequest {
   description: string | null;
   base_price_usd: string;
   visa_residency_detail: VisaResidencyDetailIn | null;
+  pinned_currency_code?: string | null;
+  pinned_price_amount?: string | null;
 }
 
 /** مطابق لـ app.schemas.service.ServiceUpdateRequest. */
@@ -69,6 +74,8 @@ export interface ServiceUpdateRequest {
   description?: string | null;
   base_price_usd?: string;
   is_active?: boolean;
+  pinned_currency_code?: string | null;
+  pinned_price_amount?: string | null;
 }
 
 /** مطابق لـ app.schemas.service.ServiceDiscountUpdateRequest. */

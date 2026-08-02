@@ -1,6 +1,6 @@
 // File: frontend/src/features/services/ServicesTable.tsx
 
-import { ClipboardList, Percent, Pencil, Trash2 } from "lucide-react";
+import { ClipboardList, Percent, Pencil, Pin, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { FilterPill } from "@/components/ui/FilterPill";
@@ -28,6 +28,22 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
       {isActive ? "مفعَّلة" : "معطَّلة"}
     </span>
   );
+}
+
+/** يُنسّق سعر الخدمة للوحة الإدارة: بعملتها المثبَّتة إن وُجدت، وإلا بالدولار الأساسي دائماً (بلا تحويل عملة الزائر). */
+function formatAdminPrice(service: ServiceOut): { current: string; original: string | null } {
+  if (service.pinned_currency_code && service.pinned_price_amount) {
+    return {
+      current: `${Number(service.effective_pinned_price_amount).toFixed(2)} ${service.pinned_currency_code}`,
+      original: service.has_active_discount
+        ? `${Number(service.pinned_price_amount).toFixed(2)} ${service.pinned_currency_code}`
+        : null,
+    };
+  }
+  return {
+    current: `$${service.effective_price_usd}`,
+    original: service.has_active_discount ? `$${service.base_price_usd}` : null,
+  };
 }
 
 /**
@@ -59,6 +75,7 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
       <div className="space-y-3 md:hidden">
         {filteredServices.map((service) => {
           const CategoryIcon = serviceCategoryIcons[service.category];
+          const price = formatAdminPrice(service);
           return (
             <div key={service.id} className="rounded-2xl border border-slate-200/80 bg-white p-4">
               <div className="mb-3 flex items-start justify-between gap-2">
@@ -74,17 +91,19 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                 <StatusBadge isActive={service.is_active} />
               </div>
 
-              <div className="mb-3 flex items-center gap-1.5 text-sm">
-                {service.has_active_discount ? (
-                  <>
-                    <span className="text-slate-400 line-through">${service.base_price_usd}</span>
-                    <span className="font-semibold text-navy-700">${service.effective_price_usd}</span>
-                    <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
-                      %{service.discount_percentage} خصم
-                    </span>
-                  </>
-                ) : (
-                  <span className="font-semibold text-navy-700">${service.base_price_usd}</span>
+              <div className="mb-3 flex flex-wrap items-center gap-1.5 text-sm">
+                {price.original && <span className="text-slate-400 line-through">{price.original}</span>}
+                <span className="font-semibold text-navy-700">{price.current}</span>
+                {service.has_active_discount && (
+                  <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                    %{service.discount_percentage} خصم
+                  </span>
+                )}
+                {service.pinned_currency_code && (
+                  <span className="flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-xs font-medium text-gold-700">
+                    <Pin size={11} />
+                    مثبَّت
+                  </span>
                 )}
               </div>
 
@@ -151,22 +170,30 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
             </tr>
           </thead>
           <tbody>
-            {filteredServices.map((service) => (
+            {filteredServices.map((service) => {
+              const price = formatAdminPrice(service);
+              return (
               <tr key={service.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50/80">
                 <td className="px-3 py-3 font-medium text-slate-800">{service.title}</td>
                 <td className="px-3 py-3 text-slate-600">{serviceCategoryLabels[service.category]}</td>
                 <td className="px-3 py-3 text-slate-600">
-                  {service.has_active_discount ? (
-                    <span className="flex items-center gap-1.5">
-                      <span className="text-slate-400 line-through">${service.base_price_usd}</span>
-                      <span className="font-semibold text-navy-700">${service.effective_price_usd}</span>
+                  <span className="flex items-center gap-1.5">
+                    {price.original && <span className="text-slate-400 line-through">{price.original}</span>}
+                    <span className={service.has_active_discount ? "font-semibold text-navy-700" : undefined}>
+                      {price.current}
+                    </span>
+                    {service.has_active_discount && (
                       <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
                         %{service.discount_percentage} خصم
                       </span>
-                    </span>
-                  ) : (
-                    <>${service.base_price_usd}</>
-                  )}
+                    )}
+                    {service.pinned_currency_code && (
+                      <span className="flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-xs font-medium text-gold-700">
+                        <Pin size={11} />
+                        مثبَّت
+                      </span>
+                    )}
+                  </span>
                 </td>
                 <td className="px-3 py-3">
                   <StatusBadge isActive={service.is_active} />
@@ -212,7 +239,8 @@ export function ServicesTable({ services, onEdit, onManageRequirements, onSetDis
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filteredServices.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-slate-400">

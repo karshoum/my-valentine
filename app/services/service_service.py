@@ -10,7 +10,25 @@ from app.models.order import Order
 from app.models.service import Service, VisaResidencyDetail
 from app.models.user import User
 from app.schemas.service import ServiceCreateRequest, ServiceDiscountUpdateRequest, ServiceUpdateRequest
-from app.services import audit_service
+from app.services import audit_service, currency_service
+
+_FLIGHT_BOOKING_CATEGORIES = (ServiceCategory.flight, ServiceCategory.ship_ticket)
+
+
+def _validate_pinned_currency_exists(db: Session, category: ServiceCategory, currency_code: str | None) -> None:
+    """
+    يتأكّد أن عملة التثبيت مُضافة فعلاً في شاشة العملات، وأن التصنيف
+    ليس طيران/بواخر (سعرهما يُحسَب من عرض حجز حقيقي وقت الطلب).
+
+    Raises:
+        AppException: 400 إذا كان التصنيف طيران/بواخر، أو 404 إذا لم
+        توجد عملة بهذا الرمز.
+    """
+    if currency_code is None:
+        return
+    if category in _FLIGHT_BOOKING_CATEGORIES:
+        raise AppException("لا يمكن تثبيت السعر بعملة محدَّدة لخدمات تذاكر الطيران/البواخر", status_code=400)
+    currency_service.get_currency_or_404(db, currency_code)
 
 
 def list_services(db: Session, category: ServiceCategory | None = None, only_active: bool = True) -> list[Service]:
@@ -54,13 +72,19 @@ def create_service(db: Session, payload: ServiceCreateRequest, created_by: User)
         Service: الخدمة المُنشَأة حديثاً.
 
     Raises:
-        AppException: 400 إذا أُرفقت تفاصيل فيزا/إقامة لخدمة من تصنيف آخر.
+        AppException: 400 إذا أُرفقت تفاصيل فيزا/إقامة لخدمة من تصنيف آخر،
+        أو إذا كان تثبيت السعر بعملة لتصنيف طيران/بواخر، أو 404 إذا لم
+        توجد عملة التثبيت.
     """
+    _validate_pinned_currency_exists(db, payload.category, payload.pinned_currency_code)
+
     service = Service(
         category=payload.category,
         title=payload.title,
         description=payload.description,
         base_price_usd=payload.base_price_usd,
+        pinned_currency_code=payload.pinned_currency_code,
+        pinned_price_amount=payload.pinned_price_amount,
     )
     db.add(service)
     db.flush()
@@ -91,9 +115,17 @@ def update_service(db: Session, service_id: int, payload: ServiceUpdateRequest, 
 
     Returns:
         Service: الخدمة بعد التحديث.
+
+    Raises:
+        AppException: 400 إذا كان تثبيت السعر بعملة لخدمة طيران/بواخر،
+        أو 404 إذا لم توجد عملة التثبيت.
     """
     service = get_service_or_404(db, service_id)
     updates = payload.model_dump(exclude_unset=True)
+
+    if "pinned_currency_code" in updates:
+        _validate_pinned_currency_exists(db, service.category, updates["pinned_currency_code"])
+
     for field, value in updates.items():
         setattr(service, field, value)
 

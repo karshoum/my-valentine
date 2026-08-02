@@ -97,17 +97,25 @@ def create_order(db: Session, current_user: User, payload: OrderCreateRequest) -
                 Decimal("0.01")
             )
         price_usd = payload.flight_booking.base_fare_usd + fee_amount_usd
+        total_amount = currency_service.convert_usd_to(db, price_usd, payload.currency_code)
+        order_currency_code = payload.currency_code
+    elif service.pinned_currency_code:
+        # سعر مثبَّت بعملة محدَّدة من المدير (مثال: تأشيرة سعودية بالريال
+        # فقط) — لا يمر عبر تحويل الدولار ولا سعر الوكيل الخاص، ويتجاهل
+        # عملة السداد التي أرسلها العميل مهما كانت.
+        total_amount = service.effective_pinned_price_amount
+        order_currency_code = service.pinned_currency_code
     else:
         price_usd = agent_service.get_effective_price_usd(db, service, agent)
-
-    total_amount = currency_service.convert_usd_to(db, price_usd, payload.currency_code)
+        total_amount = currency_service.convert_usd_to(db, price_usd, payload.currency_code)
+        order_currency_code = payload.currency_code
 
     order = Order(
         order_number=_generate_order_number(),
         user_id=current_user.id,
         service_id=service.id,
         total_amount=total_amount,
-        currency_code=payload.currency_code.upper(),
+        currency_code=order_currency_code.upper(),
         status=OrderStatus.pending,
         contact_whatsapp=payload.contact_whatsapp,
     )

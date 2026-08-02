@@ -8,6 +8,27 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.models.enums import ServiceCategory
 from app.schemas.service_requirement import ServiceRequirementOut
 
+_FLIGHT_BOOKING_CATEGORIES = (ServiceCategory.flight, ServiceCategory.ship_ticket)
+
+
+def _validate_pinned_currency_fields(
+    category: ServiceCategory | None, currency_code: str | None, amount
+) -> None:
+    """
+    يتحقق من قاعدتي تثبيت السعر بعملة محدَّدة: الحقلان معاً أو لا شيء
+    منهما، ولا يمكن تثبيت السعر لخدمات الطيران/البواخر (سعرها يُحسَب من
+    عرض حجز حقيقي وقت الطلب، لا من سعر الخدمة الثابت).
+
+    Raises:
+        ValueError: إذا أُرسل حقل واحد فقط، أو أُرسلا لتصنيف طيران/بواخر.
+    """
+    has_currency = currency_code is not None
+    has_amount = amount is not None
+    if has_currency != has_amount:
+        raise ValueError("يجب تحديد عملة التثبيت والسعر المثبَّت معاً، أو تركهما فارغين لإلغاء التثبيت")
+    if has_currency and category in _FLIGHT_BOOKING_CATEGORIES:
+        raise ValueError("لا يمكن تثبيت السعر بعملة محدَّدة لخدمات تذاكر الطيران/البواخر")
+
 
 class VisaResidencyDetailIn(BaseModel):
     """تفاصيل فيزا/إقامة تُرفَق عند إنشاء خدمة من هذين النوعين."""
@@ -36,15 +57,35 @@ class ServiceCreateRequest(BaseModel):
     description: str | None = None
     base_price_usd: Decimal = Field(gt=0)
     visa_residency_detail: VisaResidencyDetailIn | None = None
+    pinned_currency_code: str | None = Field(default=None, min_length=2, max_length=5)
+    pinned_price_amount: Decimal | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def _validate_pinned_currency(self) -> "ServiceCreateRequest":
+        _validate_pinned_currency_fields(self.category, self.pinned_currency_code, self.pinned_price_amount)
+        return self
 
 
 class ServiceUpdateRequest(BaseModel):
-    """حقول الخدمة القابلة للتعديل الجزئي (كلها اختيارية)."""
+    """
+    حقول الخدمة القابلة للتعديل الجزئي (كلها اختيارية). تثبيت/إلغاء
+    تثبيت السعر بعملة محدَّدة يتطلب إرسال pinned_currency_code
+    وpinned_price_amount معاً (أو تركهما فارغين معاً)؛ يُمنع تصنيفا
+    الطيران/البواخر من هذا التثبيت عند التحقق في طبقة الخدمة (لأن
+    التصنيف ليس جزءاً من هذا الطلب).
+    """
 
     title: str | None = None
     description: str | None = None
     base_price_usd: Decimal | None = None
     is_active: bool | None = None
+    pinned_currency_code: str | None = Field(default=None, min_length=2, max_length=5)
+    pinned_price_amount: Decimal | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def _validate_pinned_currency(self) -> "ServiceUpdateRequest":
+        _validate_pinned_currency_fields(None, self.pinned_currency_code, self.pinned_price_amount)
+        return self
 
 
 class ServiceDiscountUpdateRequest(BaseModel):
@@ -85,6 +126,9 @@ class ServiceOut(BaseModel):
     discount_valid_until: datetime | None
     has_active_discount: bool
     effective_price_usd: Decimal
+    pinned_currency_code: str | None
+    pinned_price_amount: Decimal | None
+    effective_pinned_price_amount: Decimal | None
     visa_residency_detail: VisaResidencyDetailOut | None = None
     requirements: list[ServiceRequirementOut] = []
 

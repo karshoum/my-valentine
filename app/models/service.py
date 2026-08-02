@@ -25,6 +25,8 @@ class Service(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     discount_percentage = Column(DECIMAL(5, 2), nullable=True)
     discount_valid_until = Column(DateTime(timezone=True), nullable=True)
+    pinned_currency_code = Column(String(5), nullable=True)
+    pinned_price_amount = Column(DECIMAL(10, 2), nullable=True)
 
     visa_residency_detail = relationship(
         "VisaResidencyDetail", back_populates="service", uselist=False, cascade="all, delete-orphan"
@@ -57,6 +59,19 @@ class Service(Base):
             return self.base_price_usd
         multiplier = Decimal("1") - (self.discount_percentage / Decimal("100"))
         return (self.base_price_usd * multiplier).quantize(Decimal("0.01"))
+
+    @property
+    def effective_pinned_price_amount(self) -> Decimal | None:
+        """
+        يُعيد السعر المثبَّت الفعلي بعد خصم العرض الساري إن وُجد، أو None
+        إذا لم تكن الخدمة مثبَّتة السعر بعملة محدَّدة (pinned_currency_code).
+        """
+        if self.pinned_price_amount is None:
+            return None
+        if not self.has_active_discount:
+            return self.pinned_price_amount
+        multiplier = Decimal("1") - (self.discount_percentage / Decimal("100"))
+        return (self.pinned_price_amount * multiplier).quantize(Decimal("0.01"))
 
 
 class VisaResidencyDetail(Base):

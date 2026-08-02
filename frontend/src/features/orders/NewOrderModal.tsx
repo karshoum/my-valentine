@@ -60,6 +60,7 @@ export function NewOrderModal({
 
   const selectedService = services.find((service) => service.id === serviceId);
   const requiresFlightBooking = Boolean(selectedService && FLIGHT_BOOKING_CATEGORIES.has(selectedService.category));
+  const isPinnedPrice = Boolean(selectedService?.pinned_currency_code);
 
   const priceUsd = requiresFlightBooking
     ? (selectedFlightOffer ? Number(selectedFlightOffer.total_price_usd) : null)
@@ -67,6 +68,9 @@ export function NewOrderModal({
   const selectedCurrency = currencies.find((currency) => currency.code === currencyCode);
   const convertedTotal =
     priceUsd !== null && selectedCurrency ? (priceUsd * Number(selectedCurrency.rate_to_usd)).toFixed(2) : null;
+
+  const effectiveCurrencyCode = isPinnedPrice ? selectedService!.pinned_currency_code! : currencyCode;
+  const effectiveTotal = isPinnedPrice ? selectedService!.effective_pinned_price_amount : convertedTotal;
 
   const updatePassenger = (index: number, field: keyof OrderPassengerIn, value: string) => {
     setPassengers((current) =>
@@ -80,7 +84,7 @@ export function NewOrderModal({
 
   const canSubmit =
     serviceId !== "" &&
-    currencyCode &&
+    effectiveCurrencyCode &&
     contactWhatsapp.trim().length >= 8 &&
     passengers.every((passenger) => passenger.full_name.trim().length >= 2) &&
     (!requiresFlightBooking || selectedFlightOffer !== null);
@@ -89,7 +93,7 @@ export function NewOrderModal({
     if (serviceId === "") return;
     const order = await createOrder({
       service_id: serviceId,
-      currency_code: currencyCode,
+      currency_code: effectiveCurrencyCode,
       contact_whatsapp: contactWhatsapp.trim(),
       passengers: passengers.map((passenger) => ({
         full_name: passenger.full_name.trim(),
@@ -127,7 +131,11 @@ export function NewOrderModal({
             {services.map((service) => (
               <option key={service.id} value={service.id}>
                 {service.title}
-                {!FLIGHT_BOOKING_CATEGORIES.has(service.category) ? ` — $${service.effective_price_usd}` : ""}
+                {!FLIGHT_BOOKING_CATEGORIES.has(service.category)
+                  ? service.pinned_currency_code
+                    ? ` — ${service.effective_pinned_price_amount} ${service.pinned_currency_code}`
+                    : ` — $${service.effective_price_usd}`
+                  : ""}
               </option>
             ))}
           </select>
@@ -167,23 +175,29 @@ export function NewOrderModal({
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">عملة السداد</label>
-          <select
-            value={currencyCode}
-            onChange={(event) => setCurrencyCode(event.target.value)}
-            disabled={isLoadingCurrencies}
-            className={`w-full ${inputBaseClass}`}
-          >
-            {currencies.map((currency) => (
-              <option key={currency.code} value={currency.code}>
-                {currency.name} ({currency.code})
-              </option>
-            ))}
-          </select>
-          {convertedTotal && (
+          {isPinnedPrice ? (
+            <p className="rounded-xl border border-gold-200 bg-gold-50/60 px-3 py-2 text-sm text-gold-800">
+              سعر هذه الخدمة مثبَّت بعملة {selectedService!.pinned_currency_code} ولا يتغيّر بعملة أخرى.
+            </p>
+          ) : (
+            <select
+              value={currencyCode}
+              onChange={(event) => setCurrencyCode(event.target.value)}
+              disabled={isLoadingCurrencies}
+              className={`w-full ${inputBaseClass}`}
+            >
+              {currencies.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.name} ({currency.code})
+                </option>
+              ))}
+            </select>
+          )}
+          {effectiveTotal && (
             <p className="mt-1.5 rounded-xl border border-navy-100 bg-navy-50/50 px-3 py-2 text-sm">
               <span className="text-slate-600">الإجمالي: </span>
               <span className="font-bold text-navy-700">
-                {convertedTotal} {currencyCode}
+                {effectiveTotal} {effectiveCurrencyCode}
               </span>
             </p>
           )}

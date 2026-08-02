@@ -6,6 +6,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { BookNowLink } from "@/features/public/BookNowLink";
 import { useCurrency } from "@/features/public/useCurrency";
 import { glassPanelClass } from "@/lib/designTokens";
+import { formatServiceBasePrice, formatServicePrice } from "@/lib/formatServicePrice";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
 
@@ -45,10 +46,10 @@ export function PublicServiceRequestModal({ service, onClose }: Props) {
               <span className="text-sm font-bold text-navy-700">
                 {service.has_active_discount && (
                   <span className="ms-2 text-xs font-normal text-slate-400 line-through">
-                    {formatUsd(service.base_price_usd)}
+                    {formatServiceBasePrice(service, formatUsd)}
                   </span>
                 )}
-                {formatUsd(service.effective_price_usd)}
+                {formatServicePrice(service, formatUsd)}
               </span>
             ) : (
               <span className="text-sm text-slate-400">السعر قريباً</span>

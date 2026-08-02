@@ -4,7 +4,8 @@ import { FileText } from "lucide-react";
 import { useState } from "react";
 
 import { useCurrency } from "@/features/public/useCurrency";
-import { glassPanelClass, cardHoverClass } from "@/lib/designTokens";
+import { cardHoverClass, glassPanelClass } from "@/lib/designTokens";
+import { formatServiceBasePrice, formatServicePrice } from "@/lib/formatServicePrice";
 import { serviceCategoryIcons } from "@/lib/serviceCategoryIcons";
 import { serviceCategoryLabels } from "@/lib/serviceCategoryLabels";
 import type { ServiceOut } from "@/types/service";
@@ -68,10 +69,10 @@ export function PublicServiceCards({ services }: PublicServiceCardsProps) {
                   <p className="text-sm font-semibold text-navy-700">
                     {service.has_active_discount && (
                       <span className="ms-2 text-xs font-normal text-slate-400 line-through">
-                        {formatUsd(service.base_price_usd)}
+                        {formatServiceBasePrice(service, formatUsd)}
                       </span>
                     )}
-                    {formatUsd(service.effective_price_usd)}
+                    {formatServicePrice(service, formatUsd)}
                   </p>
                 ) : (
                   <p className="text-sm text-slate-400">السعر قريباً</p>
