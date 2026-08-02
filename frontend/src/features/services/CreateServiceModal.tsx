@@ -18,30 +18,40 @@ interface CreateServiceModalProps {
 const VISA_OR_RESIDENCY: ServiceCategory[] = ["visa", "residency"];
 const FLIGHT_BOOKING_CATEGORIES: ServiceCategory[] = ["flight", "ship_ticket"];
 
-/** نموذج إضافة خدمة جديدة إلى الكتالوج، مع حقلي الدولة والنوع لخدمات الفيزا/الإقامة، وخيار تثبيت السعر بعملة محدَّدة (موظف أو مدير). */
+/**
+ * نموذج إضافة خدمة جديدة إلى الكتالوج، مع حقلي الدولة والنوع لخدمات
+ * الفيزا/الإقامة. حقل السعر موحَّد: مبلغ واحد + عملة (افتراضياً دولار)؛
+ * اختيار أي عملة غير الدولار يثبّت السعر بها تماماً بلا أي تحويل لاحق.
+ */
 export function CreateServiceModal({ onClose, onCreated }: CreateServiceModalProps) {
   const { createService, isSubmitting, error } = useCreateService();
   const { currencies } = useCurrencies();
   const [category, setCategory] = useState<ServiceCategory>("flight");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [basePrice, setBasePrice] = useState("");
+  const [priceCurrencyCode, setPriceCurrencyCode] = useState("USD");
+  const [priceAmount, setPriceAmount] = useState("");
   const [country, setCountry] = useState("");
   const [visaType, setVisaType] = useState("");
-  const [isPinned, setIsPinned] = useState(false);
-  const [pinnedCurrencyCode, setPinnedCurrencyCode] = useState("");
-  const [pinnedPriceAmount, setPinnedPriceAmount] = useState("");
 
   const needsVisaDetail = VISA_OR_RESIDENCY.includes(category);
   const canPin = !FLIGHT_BOOKING_CATEGORIES.includes(category);
-  const canSubmit = isPinned ? pinnedCurrencyCode.trim().length > 0 && Number(pinnedPriceAmount) > 0 : true;
+  const isPinned = canPin && priceCurrencyCode !== "USD";
+  const canSubmit = priceAmount.trim().length > 0 && Number(priceAmount) > 0;
 
   const handleSubmit = async () => {
+    let basePriceUsdValue = priceAmount;
+    if (isPinned) {
+      const currency = currencies.find((c) => c.code === priceCurrencyCode);
+      const rate = currency ? Number(currency.rate_to_usd) : 1;
+      basePriceUsdValue = rate > 0 ? (Number(priceAmount) / rate).toFixed(2) : priceAmount;
+    }
+
     const service = await createService({
       category,
       title,
       description: description || null,
-      base_price_usd: basePrice,
+      base_price_usd: basePriceUsdValue,
       visa_residency_detail:
         needsVisaDetail && country
           ? {
@@ -52,8 +62,8 @@ export function CreateServiceModal({ onClose, onCreated }: CreateServiceModalPro
               is_dynamic_price: false,
             }
           : null,
-      pinned_currency_code: canPin && isPinned ? pinnedCurrencyCode : null,
-      pinned_price_amount: canPin && isPinned ? pinnedPriceAmount : null,
+      pinned_currency_code: isPinned ? priceCurrencyCode : null,
+      pinned_price_amount: isPinned ? priceAmount : null,
     });
     if (service) onCreated(service);
   };
@@ -88,14 +98,49 @@ export function CreateServiceModal({ onClose, onCreated }: CreateServiceModalPro
           className={`w-full ${inputBaseClass}`}
         />
 
-        <input
-          value={basePrice}
-          onChange={(event) => setBasePrice(event.target.value)}
-          type="number"
-          step="0.01"
-          placeholder="السعر الأساسي (دولار)"
-          className={`w-full ${inputBaseClass}`}
-        />
+        {canPin ? (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">السعر</label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                value={priceAmount}
+                onChange={(event) => setPriceAmount(event.target.value)}
+                type="number"
+                step="0.01"
+                placeholder="السعر"
+                className={`w-full ${inputBaseClass}`}
+              />
+              <select
+                value={priceCurrencyCode}
+                onChange={(event) => setPriceCurrencyCode(event.target.value)}
+                className={`w-full ${inputBaseClass}`}
+              >
+                <option value="USD">دولار أمريكي (USD)</option>
+                {currencies
+                  .filter((currency) => currency.code !== "USD")
+                  .map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.name} ({currency.code})
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {isPinned && (
+              <p className="mt-1 text-xs text-gold-700">
+                السعر مثبَّت بهذه العملة تماماً؛ لن يتغيّر مهما بدّل الزائر عملة العرض.
+              </p>
+            )}
+          </div>
+        ) : (
+          <input
+            value={priceAmount}
+            onChange={(event) => setPriceAmount(event.target.value)}
+            type="number"
+            step="0.01"
+            placeholder="السعر الأساسي (دولار)"
+            className={`w-full ${inputBaseClass}`}
+          />
+        )}
 
         {needsVisaDetail && (
           <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200/80 bg-slate-50/50 p-3">
@@ -114,51 +159,12 @@ export function CreateServiceModal({ onClose, onCreated }: CreateServiceModalPro
           </div>
         )}
 
-        {canPin && (
-          <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-              <input
-                type="checkbox"
-                checked={isPinned}
-                onChange={(event) => setIsPinned(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500/40"
-              />
-              تثبيت السعر بعملة محدَّدة (لا يتغيّر مهما بدّل الزائر عملة العرض)
-            </label>
-
-            {isPinned && (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <select
-                  value={pinnedCurrencyCode}
-                  onChange={(event) => setPinnedCurrencyCode(event.target.value)}
-                  className={`w-full ${inputBaseClass}`}
-                >
-                  <option value="">— اختر العملة —</option>
-                  {currencies.map((currency) => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.name} ({currency.code})
-                    </option>
-                  ))}
-                </select>
-                <input
-                  value={pinnedPriceAmount}
-                  onChange={(event) => setPinnedPriceAmount(event.target.value)}
-                  type="number"
-                  step="0.01"
-                  placeholder="السعر المثبَّت"
-                  className={`w-full ${inputBaseClass}`}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
         {error && <p className="text-xs text-rose-600">{error}</p>}
 
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isSubmitting || !title || !basePrice || !canSubmit}
+          disabled={isSubmitting || !title || !canSubmit}
           className="w-full rounded-xl bg-navy-600 px-4 py-2.5 text-sm font-semibold text-white transition-all
             duration-300 hover:scale-[1.02] hover:bg-navy-700 active:scale-[0.98] disabled:cursor-not-allowed
             disabled:opacity-60"

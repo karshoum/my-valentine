@@ -5,6 +5,7 @@ import {
   Banknote,
   CircleUser,
   CreditCard,
+  Landmark,
   LayoutDashboard,
   MessageSquareText,
   PlaneTakeoff,
@@ -57,6 +58,12 @@ export const navItems: NavItem[] = [
     path: "/dashboard/payments",
     icon: CreditCard,
     allowedRoles: ["admin", "employee"],
+  },
+  {
+    label: "وسائل الدفع",
+    path: "/dashboard/payment-settings",
+    icon: Landmark,
+    allowedRoles: ["admin"],
   },
   {
     label: "المستردات",

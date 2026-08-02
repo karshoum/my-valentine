@@ -14,6 +14,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { BookingFeeSettingsPage } from "@/features/flights/BookingFeeSettingsPage";
 import { OrdersPage } from "@/features/orders/OrdersPage";
 import { ShipRoutesPage } from "@/features/shipRoutes/ShipRoutesPage";
+import { PaymentSettingsPage } from "@/features/payments/PaymentSettingsPage";
 import { PaymentsPage } from "@/features/payments/PaymentsPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
 import { PublicLandingPage } from "@/features/public/PublicLandingPage";
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: "users", element: <UsersPage /> },
       { path: "agents", element: <AgentsPage /> },
       { path: "payments", element: <PaymentsPage /> },
+      { path: "payment-settings", element: <PaymentSettingsPage /> },
       { path: "refunds", element: <RefundsPage /> },
       { path: "services", element: <ServicesPage /> },
       { path: "currencies", element: <CurrenciesPage /> },

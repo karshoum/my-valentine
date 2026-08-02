@@ -17,6 +17,7 @@ from app.routers import (
     flight_bookings,
     leads,
     orders,
+    payment_settings,
     payments,
     refunds,
     reviews,
@@ -80,6 +81,7 @@ app.include_router(services.router)
 app.include_router(orders.router)
 app.include_router(flight_bookings.router)
 app.include_router(payments.router)
+app.include_router(payment_settings.router)
 app.include_router(refunds.router)
 app.include_router(leads.router)
 app.include_router(audit.router)
